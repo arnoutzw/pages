@@ -599,9 +599,19 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             );
         };
 
-        const ItemModal = ({ item, boxes, onSave, onClose, onDelete }) => {
+        const ItemModal = ({ item, boxes, items, onSave, onClose, onDelete }) => {
             const [form, setForm] = useState(item || { name: '', category: 'Electronics', subcategory: '', box: 'KS-01', quantity: 1, value: 0, projects: [] });
             const [newProject, setNewProject] = useState({ name: '', quantity: 1 });
+            const [isNewProject, setIsNewProject] = useState(false);
+            
+            // Get all unique project names from all items
+            const existingProjects = useMemo(() => {
+                const projectSet = new Set();
+                items.forEach(i => {
+                    (i.projects || []).forEach(p => projectSet.add(p.name));
+                });
+                return Array.from(projectSet).sort();
+            }, [items]);
             const [photo, setPhoto] = useState(null);
             const [photoPreview, setPhotoPreview] = useState(null);
             const fileInputRef = useRef(null);
@@ -782,12 +792,37 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                         </div>
                                     ))}
                                     <div className="flex gap-2">
-                                        <input 
-                                            placeholder="Project naam" 
-                                            value={newProject.name} 
-                                            onChange={e => setNewProject({...newProject, name: e.target.value})} 
-                                            className="flex-1 px-2 py-2 border rounded text-sm"
-                                        />
+                                        {!isNewProject ? (
+                                            <select 
+                                                value={newProject.name}
+                                                onChange={e => {
+                                                    if (e.target.value === '__new__') {
+                                                        setIsNewProject(true);
+                                                        setNewProject({...newProject, name: ''});
+                                                    } else {
+                                                        setNewProject({...newProject, name: e.target.value});
+                                                    }
+                                                }}
+                                                className="flex-1 px-2 py-2 border rounded text-sm"
+                                            >
+                                                <option value="">-- Kies project --</option>
+                                                {existingProjects.filter(p => !(form.projects || []).find(fp => fp.name === p)).map(p => (
+                                                    <option key={p} value={p}>{p}</option>
+                                                ))}
+                                                <option value="__new__">+ Nieuw project...</option>
+                                            </select>
+                                        ) : (
+                                            <div className="flex-1 flex gap-1">
+                                                <input 
+                                                    placeholder="Nieuw project naam" 
+                                                    value={newProject.name} 
+                                                    onChange={e => setNewProject({...newProject, name: e.target.value})} 
+                                                    className="flex-1 px-2 py-2 border rounded text-sm"
+                                                    autoFocus
+                                                />
+                                                <button type="button" onClick={() => { setIsNewProject(false); setNewProject({name: '', quantity: 1}); }} className="px-2 text-gray-500">✕</button>
+                                            </div>
+                                        )}
                                         <input 
                                             type="number" 
                                             min="1"
@@ -806,6 +841,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                         setForm({...form, projects: [...(form.projects || []), {name: newProject.name.trim(), quantity: newProject.quantity}]});
                                                     }
                                                     setNewProject({name: '', quantity: 1});
+                                                    setIsNewProject(false);
                                                 }
                                             }}
                                             className="px-3 py-2 bg-blue-500 text-white rounded text-sm"
@@ -1430,7 +1466,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                     {selectedBox && <BoxModal box={selectedBox} items={items} settings={settings} onClose={() => setSelectedBox(null)} onUpdateItem={updateQuantity} onEditItem={setEditItem} onPrintQR={printSingleQR} />}
                     {showScanner && <QRScanner onScan={handleQRScan} onClose={() => setShowScanner(false)} />}
                     {showSettings && <SettingsModal settings={settings} onSave={(s) => { setSettings(s); setShowSettings(false); }} onClose={() => setShowSettings(false)} />}
-                    {(editItem || showAddItem) && <ItemModal item={editItem} boxes={boxes} onSave={saveItem} onClose={() => { setEditItem(null); setShowAddItem(false); }} onDelete={deleteItem} />}
+                    {(editItem || showAddItem) && <ItemModal item={editItem} boxes={boxes} items={items} onSave={saveItem} onClose={() => { setEditItem(null); setShowAddItem(false); }} onDelete={deleteItem} />}
                     {showAddBox && <AddBoxModal boxes={boxes} onSave={saveBox} onClose={() => setShowAddBox(false)} />}
                     {showPrintQR && <PrintQRModal boxes={boxes} onClose={() => setShowPrintQR(false)} />}
                 </div>
