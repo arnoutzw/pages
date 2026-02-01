@@ -334,7 +334,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                             window.onload = function() {
                                 setTimeout(function() { window.print(); }, 500);
                             };
-                        <\/script>
+                        </script>
                     </body>
                     </html>
                 `);
@@ -547,7 +547,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                         document.body.removeChild(container);
                                                         const printWindow = window.open('', '_blank', 'width=400,height=400');
                                                         if (!printWindow) { alert('Popup blocked!'); return; }
-                                                        printWindow.document.write(\`
+                                                        printWindow.document.write(`
                                                             <!DOCTYPE html><html><head><title>Print 12NC QR</title>
                                                             <style>
                                                                 body { font-family: Arial; display: flex; justify-content: center; padding: 10mm; }
@@ -557,13 +557,13 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                                 .label .name { font-size: 8pt; color: #666; margin-top: 1mm; max-width: 50mm; text-align: center; }
                                                             </style></head>
                                                             <body><div class="label">
-                                                                <img src="\${qrDataUrl}"/>
-                                                                <div class="nc">\${form.nc}</div>
-                                                                <div class="name">\${form.name || ''}</div>
+                                                                <img src="${qrDataUrl}"/>
+                                                                <div class="nc">${form.nc}</div>
+                                                                <div class="name">${form.name || ''}</div>
                                                             </div>
-                                                            <script>window.onload = () => setTimeout(() => window.print(), 500);<\/script>
+                                                            <script>window.onload = () => setTimeout(() => window.print(), 500);</script>
                                                             </body></html>
-                                                        \`);
+                                                        `);
                                                         printWindow.document.close();
                                                     }, 100);
                                                 }}
@@ -864,7 +864,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                 <div class="label-text">${box.label}</div>
                                 <div class="label-desc">${box.contents || ''}</div>
                             </div>
-                            <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };<\/script>
+                            <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</script>
                         </body>
                         </html>
                     `);
