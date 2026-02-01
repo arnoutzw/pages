@@ -330,11 +330,11 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         <div class="qr-print-container">
                             ${labelsHtml.join('')}
                         </div>
-                        <script>
+                        <scr" + "ipt>
                             window.onload = function() {
                                 setTimeout(function() { window.print(); }, 500);
                             };
-                        </script>
+                        </scr" + "ipt>
                     </body>
                     </html>
                 `);
@@ -561,7 +561,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                                 <div class="nc">${form.nc}</div>
                                                                 <div class="name">${form.name || ''}</div>
                                                             </div>
-                                                            <script>window.onload = () => setTimeout(() => window.print(), 500);</script>
+                                                            <scr" + "ipt>window.onload = () => setTimeout(() => window.print(), 500);</scr" + "ipt>
                                                             </body></html>
                                                         `);
                                                         printWindow.document.close();
@@ -864,7 +864,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                 <div class="label-text">${box.label}</div>
                                 <div class="label-desc">${box.contents || ''}</div>
                             </div>
-                            <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</script>
+                            <scr" + "ipt>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</scr" + "ipt>
                         </body>
                         </html>
                     `);
