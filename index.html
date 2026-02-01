@@ -631,22 +631,58 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
 
         const BarcodeScanner = ({ onScan, onClose }) => {
             const [error, setError] = useState(null);
+            const onScanRef = useRef(onScan);
+            onScanRef.current = onScan;
+
             useEffect(() => {
-                const html5QrCode = new Html5Qrcode("barcode-reader");
-                const config = {
-                    fps: 10,
-                    qrbox: { width: 300, height: 100 }, // Rectangular for CODE128
-                    formatsToSupport: [
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.QR_CODE
-                    ]
+                let html5QrCode = null;
+                let isScanning = false;
+
+                const startScanner = async () => {
+                    try {
+                        html5QrCode = new Html5Qrcode("barcode-reader");
+                        const config = {
+                            fps: 10,
+                            qrbox: { width: 300, height: 100 },
+                            formatsToSupport: [
+                                Html5QrcodeSupportedFormats.CODE_128,
+                                Html5QrcodeSupportedFormats.QR_CODE,
+                                Html5QrcodeSupportedFormats.EAN_13,
+                                Html5QrcodeSupportedFormats.EAN_8,
+                                Html5QrcodeSupportedFormats.UPC_A
+                            ]
+                        };
+                        await html5QrCode.start(
+                            { facingMode: "environment" },
+                            config,
+                            async (decodedText) => {
+                                if (isScanning) return;
+                                isScanning = true;
+                                try {
+                                    await html5QrCode.stop();
+                                } catch (e) {
+                                    console.log('Stop error:', e);
+                                }
+                                // Use setTimeout to ensure state updates happen after scanner cleanup
+                                setTimeout(() => onScanRef.current(decodedText), 100);
+                            },
+                            () => {}
+                        );
+                    } catch (err) {
+                        console.error('Scanner start error:', err);
+                        setError('Camera toegang geweigerd');
+                    }
                 };
-                html5QrCode.start({ facingMode: "environment" }, config,
-                    (decodedText) => { html5QrCode.stop(); onScan(decodedText); },
-                    () => {}
-                ).catch(err => setError('Camera toegang geweigerd'));
-                return () => { html5QrCode.stop().catch(() => {}); };
-            }, [onScan]);
+
+                startScanner();
+
+                return () => {
+                    if (html5QrCode) {
+                        html5QrCode.stop().catch(() => {});
+                    }
+                };
+            }, []);
+
             return (
                 <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg p-6 max-w-md w-full">
@@ -1499,44 +1535,55 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             const handleQRScan = useCallback((data) => {
                 setShowScanner(false);
 
-                // Handle box barcodes (INVBOX:KS-01)
-                if (data.startsWith('INVBOX:')) {
-                    const boxLabel = data.replace('INVBOX:', '');
-                    const box = boxes.find(b => b.label === boxLabel);
-                    if (box) {
-                        setSelectedBox(box);
-                    } else {
-                        alert(`Box "${boxLabel}" not found`);
-                    }
+                // Safety check
+                if (!data || typeof data !== 'string') {
+                    console.log('Invalid barcode data:', data);
                     return;
                 }
 
-                // Handle 12NC codes (12 digits, with or without spaces)
-                const cleanCode = data.replace(/\s/g, '');
-                if (/^\d{12}$/.test(cleanCode)) {
-                    const item = items.find(i => i.nc && i.nc.replace(/\s/g, '') === cleanCode);
-                    if (item) {
-                        setEditItem(item);
-                    } else {
-                        alert(`Item with NC "${data}" not found`);
+                try {
+                    // Handle box barcodes (INVBOX:KS-01)
+                    if (data.startsWith('INVBOX:')) {
+                        const boxLabel = data.replace('INVBOX:', '');
+                        const box = boxes.find(b => b.label === boxLabel);
+                        if (box) {
+                            setSelectedBox(box);
+                        } else {
+                            alert(`Box "${boxLabel}" not found`);
+                        }
+                        return;
                     }
-                    return;
-                }
 
-                // Handle other barcodes - search in item names
-                const searchTerm = data.toLowerCase();
-                const foundItem = items.find(i =>
-                    i.name?.toLowerCase().includes(searchTerm) ||
-                    i.nc?.includes(data)
-                );
+                    // Handle 12NC codes (12 digits, with or without spaces)
+                    const cleanCode = data.replace(/\s/g, '');
+                    if (/^\d{12}$/.test(cleanCode)) {
+                        const item = items.find(i => i.nc && i.nc.replace(/\s/g, '') === cleanCode);
+                        if (item) {
+                            setEditItem(item);
+                        } else {
+                            alert(`Item with NC "${data}" not found`);
+                        }
+                        return;
+                    }
 
-                if (foundItem) {
-                    setEditItem(foundItem);
-                } else {
-                    // Set search to barcode value so user can see results
-                    setSearch(data);
-                    setView('items');
-                    alert(`Barcode: ${data}\nNo exact match found. Search updated.`);
+                    // Handle other barcodes - search in item names
+                    const searchTerm = data.toLowerCase();
+                    const foundItem = items.find(i =>
+                        (i.name && i.name.toLowerCase().includes(searchTerm)) ||
+                        (i.nc && i.nc.includes(data))
+                    );
+
+                    if (foundItem) {
+                        setEditItem(foundItem);
+                    } else {
+                        // Set search to barcode value so user can see results
+                        setSearch(data);
+                        setView('items');
+                        alert(`Barcode: ${data}\nNo exact match found. Search updated.`);
+                    }
+                } catch (e) {
+                    console.error('Barcode scan error:', e);
+                    alert(`Error processing barcode: ${e.message}`);
                 }
             }, [boxes, items]);
 
