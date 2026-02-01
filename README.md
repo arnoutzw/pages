@@ -16,10 +16,10 @@ A Progressive Web App (PWA) for managing electronics lab inventory with barcode 
   - Item 12NC barcode labels
   - Canvas-based image generation for precise sizing
 - **Category Filtering**: Filter by Electronics, 3D Printing, Mechanical, or Other
-- **Low Stock Alerts**: Global threshold + per-item minStock override
+- **Overallocation Warnings**: Alerts when project allocations exceed available quantity
 - **Offline Support**: Works without internet connection (PWA)
 - **Auto-Update**: Automatically fetches latest version when online
-- **Version Info**: About section with version number and git hash
+- **Version Info**: About section with git hash, build date, and release history
 - **Force Update**: Manual update check button in Settings
 - **Mobile Optimized**: Touch-friendly interface with safe area support
 - **Dark Mode**: Toggle dark theme in settings
@@ -54,8 +54,8 @@ A Progressive Web App (PWA) for managing electronics lab inventory with barcode 
 1. Click ➕ to add new item
 2. Click the photo placeholder to add a photo
 3. Fill in item details (name, category, subcategory, box, quantity)
-4. Optionally set minStock for per-item low stock alerts
-5. Add product link and image URL if available
+4. Add product link and image URL if available
+5. Assign to projects if needed
 6. 12NC code is auto-generated based on category
 7. Barcode appears next to 12NC field
 8. Click "Opslaan" to save
