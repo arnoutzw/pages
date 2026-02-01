@@ -180,6 +180,48 @@ QR codes encode: `INVBOX:{box_label}` (e.g., `INVBOX:KS-01`)
 | FH | FULLSMOCKAD |
 | LV | LÄTTVIST |
 
+## Security
+
+This application implements security measures based on [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/) recommendations.
+
+### Content Security Policy (CSP)
+
+A strict CSP header is configured via meta tag to mitigate XSS attacks:
+
+| Directive | Policy |
+|-----------|--------|
+| `default-src` | `'self'` |
+| `script-src` | `'self'` + CDN hosts |
+| `style-src` | `'self' 'unsafe-inline'` |
+| `img-src` | `'self' data: blob:` |
+| `object-src` | `'none'` |
+| `frame-ancestors` | `'none'` |
+
+### XSS Prevention
+
+- **Output Encoding**: All user data is escaped with `escapeHtml()` before DOM insertion
+- **Input Sanitization**: User inputs are sanitized with `sanitizeInput()` before storage
+- No use of `innerHTML` with untrusted data
+- No use of `eval()` or `Function()` with user input
+
+### File Upload Security
+
+- MIME type validation (JPEG, PNG, GIF, WebP only)
+- File size limit (10MB maximum)
+- Images resized to max 800px to prevent storage DoS
+
+### Data Storage
+
+- All data stored locally (IndexedDB/localStorage)
+- No server-side storage or transmission
+- Export/Import for backup and transfer
+
+### References
+
+- [DOM-based XSS Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.html)
+- [Content Security Policy Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html)
+- [HTML5 Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html)
+
 ## Browser Support
 
 - Chrome/Edge (recommended)
