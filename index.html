@@ -190,11 +190,16 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
         const QRCode = ({ value, size = 128 }) => {
             const qrRef = useRef(null);
             useEffect(() => {
-                if (qrRef.current) {
+                if (qrRef.current && value) {
                     qrRef.current.innerHTML = '';
-                    new window.QRCode(qrRef.current, { text: value, width: size, height: size, colorDark: "#000000", colorLight: "#ffffff" });
+                    try {
+                        new window.QRCode(qrRef.current, { text: value, width: size, height: size, colorDark: "#000000", colorLight: "#ffffff" });
+                    } catch (e) {
+                        console.error('QRCode error:', e);
+                    }
                 }
             }, [value, size]);
+            if (!value) return null;
             return <div ref={qrRef} className="inline-block"></div>;
         };
 
@@ -530,12 +535,12 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                     </div>
                                     {form.nc && (
                                         <div className="flex flex-col items-center">
-                                            <QRCode value={form.nc.replace(/ /g, '')} size={80} />
+                                            <QRCode value={(form.nc || '').replace(/ /g, '')} size={80} />
                                             <button 
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    const nc = form.nc.replace(/ /g, '');
+                                                    const nc = (form.nc || '').replace(/ /g, '');
                                                     const container = document.createElement('div');
                                                     container.style.display = 'none';
                                                     document.body.appendChild(container);
