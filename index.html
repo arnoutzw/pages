@@ -1021,6 +1021,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             const [showPrintQR, setShowPrintQR] = useState(false);
             const [view, setView] = useState('boxes');
             const [showAllItems, setShowAllItems] = useState(false);
+            const [expandedLocations, setExpandedLocations] = useState(new Set());
 
             useEffect(() => {
                 const loadData = async () => {
@@ -1296,6 +1297,34 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                 return matchSearch && matchTheme;
             }), [boxes, search, filterTheme]);
 
+            // Group boxes by location for shelves view
+            const locationGroups = useMemo(() => {
+                const groups = new Map();
+                boxes.forEach(box => {
+                    const loc = box.location || 'Geen locatie';
+                    if (!groups.has(loc)) {
+                        groups.set(loc, []);
+                    }
+                    groups.get(loc).push(box);
+                });
+                // Sort locations and boxes within
+                return Array.from(groups.entries())
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .map(([location, locationBoxes]) => ({
+                        location,
+                        boxes: locationBoxes.sort((a, b) => a.label.localeCompare(b.label))
+                    }));
+            }, [boxes]);
+            
+            const toggleLocation = (loc) => {
+                setExpandedLocations(prev => {
+                    const next = new Set(prev);
+                    if (next.has(loc)) next.delete(loc);
+                    else next.add(loc);
+                    return next;
+                });
+            };
+
             const getThemeClass = (theme) => ({ '3D Printing': 'theme-3dprint', 'Electronics': 'theme-electronics', 'Mechanical': 'theme-mechanical' }[theme] || 'theme-other');
 
             // Aggregate projects data for BoM view
@@ -1362,15 +1391,62 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                 <option value="all">Alles</option><option value="Electronics">Elec</option><option value="3D Printing">3DP</option><option value="Mechanical">Mech</option>
                             </select>
                         </div>
-                        <div className="flex rounded-lg overflow-hidden border">
-                            <button onClick={() => setView('boxes')} className={`flex-1 py-2 text-sm ${view === 'boxes' ? 'bg-blue-500 text-white' : ''}`}>📦 Boxes</button>
-                            <button onClick={() => setView('items')} className={`flex-1 py-2 text-sm ${view === 'items' ? 'bg-blue-500 text-white' : ''}`}>📋 Items</button>
-                            <button onClick={() => setView('projects')} className={`flex-1 py-2 text-sm ${view === 'projects' ? 'bg-blue-500 text-white' : ''}`}>🔧 BoM</button>
-                            <button onClick={() => setView('map')} className={`flex-1 py-2 text-sm ${view === 'map' ? 'bg-blue-500 text-white' : ''}`}>🗺️ Map</button>
+                        <div className="flex rounded-lg overflow-hidden border text-xs">
+                            <button onClick={() => setView('shelves')} className={`flex-1 py-2 ${view === 'shelves' ? 'bg-blue-500 text-white' : ''}`}>🗄️ Locaties</button>
+                            <button onClick={() => setView('boxes')} className={`flex-1 py-2 ${view === 'boxes' ? 'bg-blue-500 text-white' : ''}`}>📦 Boxes</button>
+                            <button onClick={() => setView('items')} className={`flex-1 py-2 ${view === 'items' ? 'bg-blue-500 text-white' : ''}`}>📋 Items</button>
+                            <button onClick={() => setView('projects')} className={`flex-1 py-2 ${view === 'projects' ? 'bg-blue-500 text-white' : ''}`}>🔧 BoM</button>
+                            <button onClick={() => setView('map')} className={`flex-1 py-2 ${view === 'map' ? 'bg-blue-500 text-white' : ''}`}>🗺️</button>
                         </div>
                     </div>
 
-                    {view === 'boxes' ? (
+                    {view === 'shelves' && (
+                        <div className="space-y-2">
+                            {locationGroups.map(({ location, boxes: locationBoxes }) => (
+                                <div key={location} className="bg-white rounded-xl shadow overflow-hidden">
+                                    <div 
+                                        onClick={() => toggleLocation(location)}
+                                        className="p-3 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+                                    >
+                                        <div>
+                                            <h3 className="font-bold">{location}</h3>
+                                            <span className="text-xs text-gray-500">{locationBoxes.length} boxes</span>
+                                        </div>
+                                        <span className="text-xl text-gray-400">{expandedLocations.has(location) ? '▼' : '▶'}</span>
+                                    </div>
+                                    {expandedLocations.has(location) && (
+                                        <div className="border-t divide-y">
+                                            {locationBoxes.map(box => {
+                                                const boxItems = items.filter(i => i.box === box.label);
+                                                const hasLowStock = settings.lowStockEnabled && boxItems.some(i => i.quantity <= settings.lowStockThreshold);
+                                                return (
+                                                    <div 
+                                                        key={box.label} 
+                                                        onClick={() => setSelectedBox(box)}
+                                                        className={`p-2 pl-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 ${hasLowStock ? 'bg-red-50' : ''}`}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`w-2 h-2 rounded-full ${{'Electronics': 'bg-blue-500', '3D Printing': 'bg-yellow-500', 'Mechanical': 'bg-green-500'}[box.theme] || 'bg-gray-400'}`}></span>
+                                                            <div>
+                                                                <span className="font-medium">{box.label}</span>
+                                                                <span className="text-gray-500 text-sm ml-2">{box.contents}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs text-gray-400">{boxItems.length} items</span>
+                                                            {hasLowStock && <span>⚠️</span>}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {view === 'boxes' && (
                         <div className="grid grid-cols-2 gap-2">
                             {filteredBoxes.map(box => {
                                 const boxItems = items.filter(i => i.box === box.label);
@@ -1384,7 +1460,9 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                 );
                             })}
                         </div>
-                    ) : (
+                    )}
+
+                    {view === 'items' && (
                         <div className="bg-white rounded-xl shadow overflow-hidden">
                             <div className="divide-y max-h-96 overflow-y-auto">
                                 {(showAllItems ? filteredItems : filteredItems.slice(0,50)).map(item => (
