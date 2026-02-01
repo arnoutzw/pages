@@ -18,6 +18,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         * { -webkit-tap-highlight-color: transparent; }
@@ -900,8 +901,104 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                 });
             }, []);            const handleQRScan = useCallback((data) => { setShowScanner(false); if (data.startsWith('INVBOX:')) { const box = boxes.find(b => b.label === data.replace('INVBOX:', '')); if (box) setSelectedBox(box); } }, [boxes]);
 
-            const exportData = () => { const blob = new Blob([JSON.stringify({ boxes, items }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `inventory_${new Date().toISOString().split('T')[0]}.json`; a.click(); };
-            const importData = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { try { const data = JSON.parse(e.target.result); if (data.items) setItems(data.items); if (data.boxes) setBoxes(data.boxes); alert('Import OK'); } catch (err) { alert('Error'); } }; reader.readAsText(file); } };
+            const exportData = async () => {
+                const zip = new JSZip();
+                
+                // Add inventory JSON
+                const inventoryData = { 
+                    version: '2.0',
+                    exportDate: new Date().toISOString(),
+                    boxes, 
+                    items: items.map(item => ({
+                        ...item,
+                        photoFile: null // Will be set if photo exists
+                    }))
+                };
+                
+                // Add photos to ZIP and update references
+                const photosFolder = zip.folder('photos');
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    try {
+                        const photoBlob = await getPhoto(item.id);
+                        if (photoBlob) {
+                            const filename = `photo_${item.id}.jpg`;
+                            photosFolder.file(filename, photoBlob);
+                            inventoryData.items[i].photoFile = filename;
+                        }
+                    } catch (e) {
+                        console.log('No photo for item', item.id);
+                    }
+                }
+                
+                zip.file('inventory.json', JSON.stringify(inventoryData, null, 2));
+                
+                // Generate and download ZIP
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(zipBlob);
+                a.download = `inventory_${new Date().toISOString().split('T')[0]}.zip`;
+                a.click();
+            };
+            const importData = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    if (file.name.endsWith('.zip')) {
+                        // Import ZIP with photos
+                        const zip = await JSZip.loadAsync(file);
+                        const inventoryFile = zip.file('inventory.json');
+                        
+                        if (!inventoryFile) {
+                            alert('Invalid ZIP: no inventory.json found');
+                            return;
+                        }
+                        
+                        const jsonText = await inventoryFile.async('text');
+                        const data = JSON.parse(jsonText);
+                        
+                        // Import items and boxes
+                        if (data.items) setItems(data.items);
+                        if (data.boxes) setBoxes(data.boxes);
+                        
+                        // Import photos
+                        let photoCount = 0;
+                        for (const item of data.items) {
+                            if (item.photoFile) {
+                                const photoFile = zip.file('photos/' + item.photoFile);
+                                if (photoFile) {
+                                    const photoBlob = await photoFile.async('blob');
+                                    await savePhoto(item.id, photoBlob);
+                                    photoCount++;
+                                }
+                            }
+                        }
+                        
+                        alert(`Import OK: ${data.items.length} items, ${data.boxes.length} boxes, ${photoCount} photos`);
+                    } else {
+                        // Legacy JSON import
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            try {
+                                const data = JSON.parse(e.target.result);
+                                if (data.items) setItems(data.items);
+                                if (data.boxes) setBoxes(data.boxes);
+                                alert('Import OK');
+                            } catch (err) {
+                                alert('Error parsing JSON');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                } catch (err) {
+                    console.error('Import error:', err);
+                    alert('Import failed: ' + err.message);
+                }
+                
+                // Reset file input
+                e.target.value = '';
+            };
 
             const isLowStock = (item) => settings.lowStockEnabled && item.quantity <= settings.lowStockThreshold;
             const lowStockItems = useMemo(() => settings.lowStockEnabled ? items.filter(i => i.quantity <= settings.lowStockThreshold) : [], [items, settings]);
@@ -997,7 +1094,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
 
                     <div className="mt-3 flex gap-2">
                         <button onClick={exportData} className="flex-1 py-2 bg-green-500 text-white rounded-lg text-sm">📥 Export</button>
-                        <label className="flex-1 py-2 bg-blue-500 text-white rounded-lg text-sm text-center cursor-pointer">📤 Import<input type="file" accept=".json" onChange={importData} className="hidden"/></label>
+                        <label className="flex-1 py-2 bg-blue-500 text-white rounded-lg text-sm text-center cursor-pointer">📤 Import<input type="file" accept=".json,.zip" onChange={importData} className="hidden"/></label>
                         <button onClick={() => { if(confirm('Reset?')) { localStorage.removeItem(STORAGE_KEY); location.reload(); }}} className="py-2 px-3 bg-red-500 text-white rounded-lg text-sm">🗑️</button>
                     </div>
 

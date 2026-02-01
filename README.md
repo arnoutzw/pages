@@ -68,9 +68,22 @@ A Progressive Web App (PWA) for managing electronics lab inventory with QR code 
 
 ### Data Management
 
-- **Export**: Download inventory as JSON
-- **Import**: Load inventory from JSON file
+- **Export**: Download inventory as ZIP file containing:
+  - `inventory.json` - boxes and items data
+  - `photos/` folder with all item photos
+- **Import**: Load from ZIP (with photos) or legacy JSON file
 - **Reset**: Clear all data and reload defaults
+
+#### Export Format (ZIP)
+
+```
+inventory_2024-01-15.zip
+├── inventory.json      # Boxes, items, photo references
+└── photos/
+    ├── photo_123.jpg   # Photo for item ID 123
+    ├── photo_456.jpg
+    └── ...
+```
 
 ## 12NC Identification System
 
