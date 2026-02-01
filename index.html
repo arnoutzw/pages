@@ -7,6 +7,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Lab Inventory">
     <meta name="theme-color" content="#3b82f6">
+    <!-- Content Security Policy - OWASP recommended security header -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
     <title>Electronics Lab Inventory</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -88,6 +90,41 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+        // Security: HTML escape function to prevent XSS attacks (OWASP recommendation)
+        const escapeHtml = (str) => {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;');
+        };
+
+        // Security: Input sanitization for stored text (removes control characters)
+        const sanitizeInput = (str) => {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control chars
+                .trim()
+                .slice(0, 500); // Limit length to prevent DoS
+        };
+
+        // Security: Validate file type for uploads (OWASP file upload recommendations)
+        const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        const validateImageFile = (file) => {
+            if (!file) return false;
+            if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+                alert('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.');
+                return false;
+            }
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                alert('File too large. Maximum size is 10MB.');
+                return false;
+            }
+            return true;
+        };
         const STORAGE_KEY = 'arnout-lab-inventory-v2';
         const SETTINGS_KEY = 'arnout-lab-settings';
         // IndexedDB Helper for persistent storage with photo support
@@ -324,9 +361,9 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                     for (let i = 0; i < copies; i++) {
                         labelsHtml.push(`
                             <div class="qr-label ${sizeClass}">
-                                <img class="qr-code-img" src="${qrDataUrl}" alt="QR ${label}"/>
-                                <div class="label-text">${label}</div>
-                                ${includeContents && box ? `<div class="label-desc">${box.contents || ''}</div>` : ''}
+                                <img class="qr-code-img" src="${qrDataUrl}" alt="QR ${escapeHtml(label)}"/>
+                                <div class="label-text">${escapeHtml(label)}</div>
+                                ${includeContents && box ? `<div class="label-desc">${escapeHtml(box.contents || '')}</div>` : ''}
                             </div>
                         `);
                     }
@@ -502,7 +539,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             
             const handlePhotoChange = (e) => {
                 const file = e.target.files[0];
-                if (file) {
+                if (file && validateImageFile(file)) {
                     // Resize image to max 800px
                     const img = new Image();
                     img.onload = () => {
@@ -531,7 +568,13 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             };
             
             const handleSave = async () => {
-                const savedItem = await onSave(form);
+                // Sanitize inputs before saving (OWASP recommendation)
+                const sanitizedForm = {
+                    ...form,
+                    name: sanitizeInput(form.name),
+                    subcategory: sanitizeInput(form.subcategory || ''),
+                };
+                const savedItem = await onSave(sanitizedForm);
                 const itemId = form.id || savedItem?.id;
                 if (itemId && photo) {
                     await savePhoto(itemId, photo);
@@ -605,8 +648,8 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                             </style></head>
                                                             <body><div class="label">
                                                                 <img src="${qrDataUrl}"/>
-                                                                <div class="nc">${form.nc}</div>
-                                                                <div class="name">${form.name || ''}</div>
+                                                                <div class="nc">${escapeHtml(form.nc)}</div>
+                                                                <div class="name">${escapeHtml(form.name || '')}</div>
                                                             </div>
                                                             <scr" + "ipt>window.onload = () => setTimeout(() => window.print(), 500);</scr" + "ipt>
                                                             </body></html>
@@ -741,7 +784,17 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                             </div>
                         </div>
                         <div className="flex gap-2 mt-4">
-                            <button onClick={() => { if(form.label && form.contents) onSave(form); }} className="flex-1 py-3 bg-blue-500 text-white rounded-lg text-lg">Opslaan</button>
+                            <button onClick={() => { 
+                                if(form.label && form.contents) {
+                                    // Sanitize inputs before saving (OWASP recommendation)
+                                    onSave({
+                                        ...form,
+                                        label: sanitizeInput(form.label),
+                                        contents: sanitizeInput(form.contents),
+                                        location: sanitizeInput(form.location),
+                                    });
+                                }
+                            }} className="flex-1 py-3 bg-blue-500 text-white rounded-lg text-lg">Opslaan</button>
                             <button onClick={onClose} className="px-4 py-3 bg-gray-300 rounded-lg text-lg">Annuleer</button>
                         </div>
                     </div>
@@ -891,7 +944,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         <!DOCTYPE html>
                         <html>
                         <head>
-                            <title>Print QR - ${box.label}</title>
+                            <title>Print QR - ${escapeHtml(box.label)}</title>
                             <style>
                                 * { margin: 0; padding: 0; box-sizing: border-box; }
                                 body { font-family: Arial, sans-serif; display: flex; justify-content: center; padding: 10mm; }
@@ -912,9 +965,9 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         </head>
                         <body>
                             <div class="qr-label">
-                                <img src="${qrDataUrl}" alt="QR ${box.label}"/>
-                                <div class="label-text">${box.label}</div>
-                                <div class="label-desc">${box.contents || ''}</div>
+                                <img src="${qrDataUrl}" alt="QR ${escapeHtml(box.label)}"/>
+                                <div class="label-text">${escapeHtml(box.label)}</div>
+                                <div class="label-desc">${escapeHtml(box.contents || '')}</div>
                             </div>
                             <scr" + "ipt>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</scr" + "ipt>
                         </body>
