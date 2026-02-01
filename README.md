@@ -1,10 +1,12 @@
 # Lab Inventory
 
-A Progressive Web App (PWA) for managing electronics lab inventory with QR code support.
+A Progressive Web App (PWA) for managing electronics lab inventory with QR code support, photo storage, and Philips 12NC identification.
 
 ## Features
 
 - **Box-based Organization**: Organize items in labeled storage boxes (KUGGIS, FJÄLLA, etc.)
+- **12NC Identification**: Each item has a unique Philips 12NC code for tracking
+- **Photo Support**: Add photos to items, stored locally in IndexedDB
 - **QR Code Scanning**: Scan QR codes to quickly find boxes
 - **QR Code Printing**: Print QR labels via CUPS/system printer
   - Batch printing for multiple boxes
@@ -37,6 +39,14 @@ A Progressive Web App (PWA) for managing electronics lab inventory with QR code 
 | ➕ | Add new item |
 | ⚙️ | Settings |
 
+### Adding Items with Photos
+
+1. Click ➕ to add new item
+2. Click the photo placeholder to add a photo
+3. Fill in item details (name, category, box, quantity)
+4. 12NC code is auto-generated based on category
+5. Click "Opslaan" to save
+
 ### Printing QR Labels
 
 1. Click 🖨️ in the header
@@ -50,6 +60,29 @@ A Progressive Web App (PWA) for managing electronics lab inventory with QR code 
 - **Export**: Download inventory as JSON
 - **Import**: Load inventory from JSON file
 - **Reset**: Clear all data and reload defaults
+
+## 12NC Identification System
+
+Each item has a unique 12-digit Philips NC code (introduced 1963).
+
+### Format: `XXYY ZZZ ZZZZZ`
+
+```
+4822 000 00001
+├─┤├─┤├──────┤
+ │  │     └── Product number (8 digits, sequential)
+ │  └──────── Coding centre (22 = Netherlands)
+ └─────────── Product group (HIG)
+```
+
+### Product Groups
+
+| Code | Category | Philips HIG |
+|------|----------|-------------|
+| 48 | Electronics | Electronic components |
+| 40 | 3D Printing | Professional electronics |
+| 24 | Mechanical | Electromechanical parts |
+| 53 | Other | Service parts |
 
 ## File Structure
 
@@ -67,9 +100,23 @@ lab-inventory/
 ## Technical Details
 
 - **Frontend**: React 18, Tailwind CSS
+- **Storage**: IndexedDB (primary), localStorage (fallback)
+- **Photo Storage**: IndexedDB blobs, auto-resized to max 800px
 - **QR Codes**: qrcodejs (generation), html5-qrcode (scanning)
-- **Storage**: Browser localStorage
 - **Printing**: Browser print dialog (works with CUPS)
+
+### IndexedDB Stores
+
+| Store | Purpose |
+|-------|---------|
+| `inventory` | Boxes and items data |
+| `photos` | Item photos as blobs |
+| `settings` | App configuration |
+
+### Data Migration
+
+- Existing localStorage data auto-migrates to IndexedDB on first load
+- Falls back to localStorage if IndexedDB is unavailable
 
 ## Box Label Format
 
