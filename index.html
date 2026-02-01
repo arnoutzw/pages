@@ -1463,7 +1463,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                 const matchSearch = !search || box.label.toLowerCase().includes(search.toLowerCase()) || box.contents.toLowerCase().includes(search.toLowerCase());
                 const matchTheme = filterTheme === 'all' || box.theme === filterTheme;
                 return matchSearch && matchTheme;
-            }), [boxes, search, filterTheme]);
+            }).sort((a, b) => a.label.localeCompare(b.label)), [boxes, search, filterTheme]);
 
             // Group boxes by location for shelves view
             const locationGroups = useMemo(() => {
