@@ -737,9 +737,22 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                 </div>
             );
         };
-        const SettingsModal = ({ settings, onSave, onClose }) => {
+        const SettingsModal = ({ settings, onSave, onClose, onSyncPhotos }) => {
             const [form, setForm] = useState(settings);
             const [showAbout, setShowAbout] = useState(false);
+            const [syncStatus, setSyncStatus] = useState(null);
+
+            const handleSyncPhotos = async () => {
+                if (!onSyncPhotos) return;
+                setSyncStatus({ syncing: true, current: 0, total: 0, success: 0, failed: 0 });
+                try {
+                    await onSyncPhotos((progress) => setSyncStatus({ syncing: true, ...progress }));
+                    setSyncStatus(prev => ({ ...prev, syncing: false }));
+                } catch (e) {
+                    setSyncStatus(prev => ({ ...prev, syncing: false, error: e.message }));
+                }
+            };
+
             return (
                 <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg p-6 max-w-md w-full">
@@ -759,6 +772,24 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                     <input type="number" min="0" value={form.lowStockThreshold} onChange={e => setForm({...form, lowStockThreshold: parseInt(e.target.value)||0})} className="w-full px-3 py-2 border rounded mt-1 text-lg"/>
                                 </div>
                             )}
+                            <hr className="my-2"/>
+                            <div>
+                                <button
+                                    onClick={handleSyncPhotos}
+                                    disabled={syncStatus?.syncing}
+                                    className="w-full px-3 py-2 bg-green-500 text-white rounded flex items-center justify-center gap-2 hover:bg-green-600 disabled:bg-gray-400"
+                                >
+                                    <span class="material-icons text-sm">{syncStatus?.syncing ? 'sync' : 'cloud_download'}</span>
+                                    {syncStatus?.syncing ? `Syncing ${syncStatus.current}/${syncStatus.total}...` : 'Sync Photos from Links'}
+                                </button>
+                                {syncStatus && !syncStatus.syncing && (
+                                    <div className="mt-2 text-sm text-center">
+                                        <span className="text-green-600">{syncStatus.success} downloaded</span>
+                                        {syncStatus.failed > 0 && <span className="text-red-500 ml-2">{syncStatus.failed} failed</span>}
+                                        {syncStatus.skipped > 0 && <span className="text-gray-500 ml-2">{syncStatus.skipped} skipped</span>}
+                                    </div>
+                                )}
+                            </div>
                             <hr className="my-2"/>
                             <button onClick={() => setShowAbout(!showAbout)} className="flex items-center gap-2 text-gray-600 hover:text-blue-500">
                                 <span class="material-icons text-sm">info</span> About
@@ -1337,6 +1368,41 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             }, []);
             const saveBox = useCallback((box) => { setBoxes(prev => [...prev, box]); setShowAddBox(false); }, []);
 
+            const syncPhotosFromLinks = useCallback(async (onProgress) => {
+                const itemsWithImages = items.filter(item => item.image && item.image.startsWith('http'));
+                const total = itemsWithImages.length;
+                let success = 0, failed = 0, skipped = 0;
+
+                for (let i = 0; i < itemsWithImages.length; i++) {
+                    const item = itemsWithImages[i];
+                    onProgress({ current: i + 1, total, success, failed, skipped });
+
+                    try {
+                        // Check if photo already exists
+                        const existingPhoto = await getPhoto(item.id);
+                        if (existingPhoto) {
+                            skipped++;
+                            continue;
+                        }
+
+                        // Fetch image from URL
+                        const response = await fetch(item.image);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                        const blob = await response.blob();
+                        if (!blob.type.startsWith('image/')) throw new Error('Not an image');
+
+                        await savePhoto(item.id, blob);
+                        success++;
+                    } catch (e) {
+                        console.error(`Failed to sync photo for ${item.name}:`, e);
+                        failed++;
+                    }
+                }
+
+                onProgress({ current: total, total, success, failed, skipped });
+            }, [items]);
+
             const printSingleQR = useCallback((box) => {
                 // Generate label with barcode and print
                 const barcodeText = `INVBOX:${box.label}`;
@@ -1579,7 +1645,6 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         </div>
                         <div className="flex rounded-lg overflow-hidden border text-xs">
                             <button onClick={() => setView('shelves')} className={`flex-1 py-2 ${view === 'shelves' ? 'bg-blue-500 text-white' : ''}`}>🗄️ Locaties</button>
-                            <button onClick={() => setView('boxes')} className={`flex-1 py-2 ${view === 'boxes' ? 'bg-blue-500 text-white' : ''}`}>📦 Boxes</button>
                             <button onClick={() => setView('items')} className={`flex-1 py-2 ${view === 'items' ? 'bg-blue-500 text-white' : ''}`}>📋 Items</button>
                             <button onClick={() => setView('projects')} className={`flex-1 py-2 ${view === 'projects' ? 'bg-blue-500 text-white' : ''}`}>🔧 BoM</button>
                             <button onClick={() => setView('map')} className={`flex-1 py-2 ${view === 'map' ? 'bg-blue-500 text-white' : ''}`}>🗺️</button>
@@ -1650,22 +1715,6 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                     )}
                                 </div>
                             ))}
-                        </div>
-                    )}
-
-                    {view === 'boxes' && (
-                        <div className="grid grid-cols-2 gap-2">
-                            {filteredBoxes.map(box => {
-                                const boxItems = items.filter(i => i.box === box.label);
-                                const hasLowStock = boxItems.some(i => isLowStock(i));
-                                return (
-                                    <div key={box.label} onClick={() => { setSearch(box.label); setView('items'); }} className={`${getThemeClass(box.theme)} p-3 rounded-xl shadow active:scale-95 transition ${hasLowStock ? 'ring-2 ring-red-400' : ''}`}>
-                                        <div className="flex justify-between"><span className="font-bold">{box.label}</span>{hasLowStock && <span>⚠️</span>}</div>
-                                        <div className="text-sm text-gray-700 truncate">{box.contents}</div>
-                                        <div className="text-xs text-gray-400 mt-1">{boxItems.length} items{box.type && <span className="text-blue-500"> • {box.type}</span>}</div>
-                                    </div>
-                                );
-                            })}
                         </div>
                     )}
 
@@ -1833,7 +1882,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
 
                     {selectedBox && <BoxModal box={selectedBox} items={items} settings={settings} onClose={() => setSelectedBox(null)} onUpdateItem={updateQuantity} onEditItem={setEditItem} onPrintQR={printSingleQR} />}
                     {showScanner && <QRScanner onScan={handleQRScan} onClose={() => setShowScanner(false)} />}
-                    {showSettings && <SettingsModal settings={settings} onSave={(s) => { setSettings(s); setShowSettings(false); }} onClose={() => setShowSettings(false)} />}
+                    {showSettings && <SettingsModal settings={settings} onSave={(s) => { setSettings(s); setShowSettings(false); }} onClose={() => setShowSettings(false)} onSyncPhotos={syncPhotosFromLinks} />}
                     {(editItem || showAddItem) && <ItemModal item={editItem} boxes={boxes} items={items} onSave={saveItem} onClose={() => { setEditItem(null); setShowAddItem(false); }} onDelete={deleteItem} />}
                     {showAddBox && <AddBoxModal boxes={boxes} onSave={saveBox} onClose={() => setShowAddBox(false)} />}
                     {showPrintQR && <PrintQRModal boxes={boxes} onClose={() => setShowPrintQR(false)} />}
