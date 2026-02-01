@@ -1438,29 +1438,25 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                     <div className="mt-3 flex gap-2">
                         <button onClick={exportData} className="flex-1 py-2 bg-green-500 text-white rounded-lg text-sm"><span class="material-icons text-sm align-middle">download</span> Export</button>
                         <label className="flex-1 py-2 bg-blue-500 text-white rounded-lg text-sm text-center cursor-pointer"><span class="material-icons text-sm align-middle">upload</span> Import<input type="file" accept=".json,.zip" onChange={importData} className="hidden"/></label>
-                        <button onClick={() => { 
-                            if (search || filterTheme !== 'all') {
-                                // Batch delete filtered items
-                                const count = filteredItems.length;
-                                if (count === 0) {
-                                    alert('Geen items om te verwijderen.');
-                                    return;
-                                }
-                                if (confirm(`${count} gefilterde items verwijderen?`)) {
-                                    const idsToDelete = filteredItems.map(i => i.id);
-                                    setItems(prev => prev.filter(i => !idsToDelete.includes(i.id)));
-                                    // Delete associated photos
-                                    idsToDelete.forEach(id => deletePhoto(id).catch(() => {}));
-                                    setSearch('');
-                                }
-                            } else {
-                                // Reset all data
-                                if(confirm('Alle data resetten?')) { 
-                                    localStorage.removeItem(STORAGE_KEY); 
-                                    location.reload(); 
-                                }
-                            }
-                        }} className="py-2 px-3 bg-red-500 text-white rounded-lg text-sm" title={search || filterTheme !== 'all' ? 'Verwijder gefilterde items' : 'Reset alles'}><span class="material-icons text-sm">delete</span></button>
+                        {(search || filterTheme !== 'all') && (
+                            <button 
+                                onClick={() => { 
+                                    const count = filteredItems.length;
+                                    if (count === 0) {
+                                        alert('Geen items om te verwijderen.');
+                                        return;
+                                    }
+                                    if (confirm(`${count} gefilterde items verwijderen?`)) {
+                                        const idsToDelete = filteredItems.map(i => i.id);
+                                        setItems(prev => prev.filter(i => !idsToDelete.includes(i.id)));
+                                        idsToDelete.forEach(id => deletePhoto(id).catch(() => {}));
+                                        setSearch('');
+                                    }
+                                }} 
+                                className="py-2 px-3 bg-red-500 text-white rounded-lg text-sm" 
+                                title="Verwijder gefilterde items"
+                            ><span class="material-icons text-sm">delete</span></button>
+                        )}
                     </div>
 
                     {selectedBox && <BoxModal box={selectedBox} items={items} settings={settings} onClose={() => setSelectedBox(null)} onUpdateItem={updateQuantity} onEditItem={setEditItem} onPrintQR={printSingleQR} />}
