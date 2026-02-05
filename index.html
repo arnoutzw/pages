@@ -728,8 +728,9 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
 
 
         // LabelMaker - Easy label maker with text and barcode support
-        const LabelMaker = () => {
+        const LabelMaker = ({ items = [] }) => {
             const DPI = 96;
+            const [itemSearch, setItemSearch] = useState('');
             const [canvasWidth, setCanvasWidth] = useState(3);
             const [canvasHeight, setCanvasHeight] = useState(2);
             const [sizePreset, setSizePreset] = useState('3x2');
@@ -753,6 +754,24 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             const [barcodeValue, setBarcodeValue] = useState('');
             const [showBarcodeText, setShowBarcodeText] = useState(true);
             const [barcodeHeight, setBarcodeHeight] = useState(50);
+
+            // Filter items with 12NC codes for selection
+            const itemsWithNC = items.filter(item => item.nc && item.nc.trim());
+            const filteredItems = itemSearch
+                ? itemsWithNC.filter(item =>
+                    item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
+                    item.nc.toLowerCase().includes(itemSearch.toLowerCase())
+                  )
+                : itemsWithNC;
+
+            const selectItem = (item) => {
+                // Fill barcode value with 12NC (remove spaces for barcode)
+                setBarcodeValue(item.nc.replace(/\s/g, ''));
+                // Fill text content with item name
+                setTextContent(item.name);
+                // Clear search
+                setItemSearch('');
+            };
 
             // Drag state
             const [isDragging, setIsDragging] = useState(false);
@@ -1119,6 +1138,41 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         <div className="label-maker-main">
                             {/* Controls Panel */}
                             <div className="label-maker-controls space-y-4">
+                                {/* Item Selector */}
+                                <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-3">
+                                    <h3 className="font-bold text-sm mb-2">Select from Inventory</h3>
+                                    <input
+                                        type="text"
+                                        value={itemSearch}
+                                        onChange={(e) => setItemSearch(e.target.value)}
+                                        placeholder="Search items by name or 12NC..."
+                                        className="w-full px-2 py-1 border rounded text-sm mb-2"
+                                    />
+                                    {itemSearch && filteredItems.length > 0 && (
+                                        <div className="max-h-40 overflow-y-auto border rounded bg-white dark:bg-gray-800">
+                                            {filteredItems.slice(0, 10).map((item, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    onClick={() => selectItem(item)}
+                                                    className="px-2 py-1 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800 border-b last:border-b-0 text-sm"
+                                                >
+                                                    <div className="font-medium truncate">{item.name}</div>
+                                                    <div className="text-xs text-gray-500 font-mono">{item.nc}</div>
+                                                </div>
+                                            ))}
+                                            {filteredItems.length > 10 && (
+                                                <div className="px-2 py-1 text-xs text-gray-400 text-center">
+                                                    +{filteredItems.length - 10} more items
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    {itemSearch && filteredItems.length === 0 && (
+                                        <div className="text-xs text-gray-500 text-center py-2">No items found</div>
+                                    )}
+                                    <p className="text-xs text-gray-500 mt-1">Select an item to fill barcode & text</p>
+                                </div>
+
                                 {/* Canvas Size */}
                                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                                     <h3 className="font-bold text-sm mb-2">Canvas Size</h3>
@@ -2712,7 +2766,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         );
                     })()}
 
-                    {view === 'labelmaker' && <LabelMaker />}
+                    {view === 'labelmaker' && <LabelMaker items={items} />}
 
                     <div className="mt-3 flex gap-2">
                         <button onClick={exportData} className="flex-1 py-2 bg-green-500 text-white rounded-lg text-sm"><span class="material-icons text-sm align-middle">download</span> Export</button>
