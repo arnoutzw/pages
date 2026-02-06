@@ -245,6 +245,28 @@ body {
   height: 100%;
   pointer-events: none;
 }
+.shape-content {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+/* Resize handles */
+.resize-handle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border: 1px solid #fff;
+  border-radius: 2px;
+  display: none;
+  z-index: 10;
+}
+.canvas-element.sel .resize-handle { display: block; }
+.resize-handle.rh-se { bottom: -4px; right: -4px; cursor: se-resize; }
+.resize-handle.rh-sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+.resize-handle.rh-ne { top: -4px; right: -4px; cursor: ne-resize; }
+.resize-handle.rh-nw { top: -4px; left: -4px; cursor: nw-resize; }
 .canvas-info {
   position: absolute;
   bottom: 8px;
@@ -608,6 +630,21 @@ body {
       </button>
     </div>
     <div class="sb-section">
+      <div class="sb-title">Shapes</div>
+      <button class="tool-btn" data-tool="shape-rect">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/></svg>
+        Rectangle
+      </button>
+      <button class="tool-btn" data-tool="shape-ellipse">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="8" rx="6" ry="5"/></svg>
+        Ellipse
+      </button>
+      <button class="tool-btn" data-tool="shape-line">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="14" x2="14" y2="2"/></svg>
+        Line
+      </button>
+    </div>
+    <div class="sb-section">
       <div class="sb-title">Inventory</div>
       <button class="tool-btn" id="btn-inv-import">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" opacity=".8"><rect x="2" y="1" width="12" height="3" rx="1"/><rect x="2" y="6" width="12" height="3" rx="1"/><rect x="2" y="11" width="12" height="3" rx="1"/><circle cx="13" cy="13" r="3" fill="var(--accent)"/><path d="M12 13h2M13 12v2" stroke="var(--bg-0)" stroke-width="1.2"/></svg>
@@ -797,6 +834,36 @@ function makeNode(el) {
     d.style.width = mmPx(el.width) + 'px';
     d.style.height = mmPx(el.height) + 'px';
     d.appendChild(img);
+  } else if (el.type === 'shape') {
+    d.style.width = mmPx(el.width) + 'px';
+    d.style.height = mmPx(el.height) + 'px';
+    const shape = document.createElement('div');
+    shape.className = 'shape-content';
+    const fill = el.fillColor && el.fillColor !== 'none' ? el.fillColor : 'transparent';
+    const sw = (el.strokeWidth || 0);
+    const sc = el.strokeColor || '#000000';
+    if (el.shapeType === 'ellipse') {
+      shape.style.borderRadius = '50%';
+    } else if (el.shapeType === 'line') {
+      shape.style.background = 'transparent';
+      shape.style.borderTop = mmPx(sw || 0.3) + 'px solid ' + sc;
+      shape.style.height = '0';
+      shape.style.marginTop = (mmPx(el.height) / 2) + 'px';
+    }
+    if (el.shapeType !== 'line') {
+      shape.style.background = fill;
+      if (sw > 0) {
+        shape.style.border = mmPx(sw) + 'px solid ' + sc;
+      }
+    }
+    d.appendChild(shape);
+    // Add resize handles
+    ['se','sw','ne','nw'].forEach(pos => {
+      const h = document.createElement('div');
+      h.className = 'resize-handle rh-' + pos;
+      h.dataset.resize = pos;
+      d.appendChild(h);
+    });
   }
   return d;
 }
@@ -809,10 +876,20 @@ function renderLayers() {
     return;
   }
   layersEl.innerHTML = S.elements.map(el => {
-    const icon = el.type === 'text' ? 'T' : (el.barcodeType === 'QR' ? 'QR' : 'BC');
-    const name = el.type === 'text'
-      ? (el.text.substring(0, 18) || 'Empty text')
-      : el.barcodeType + ' ' + (el.data || '').substring(0, 10);
+    let icon, name;
+    if (el.type === 'text') {
+      icon = 'T';
+      name = el.text.substring(0, 18) || 'Empty text';
+    } else if (el.type === 'barcode') {
+      icon = el.barcodeType === 'QR' ? 'QR' : 'BC';
+      name = el.barcodeType + ' ' + (el.data || '').substring(0, 10);
+    } else if (el.type === 'shape') {
+      const icons = { rect: '\u25AD', ellipse: '\u25CB', line: '\u2015' };
+      icon = icons[el.shapeType] || '\u25A1';
+      name = el.shapeType.charAt(0).toUpperCase() + el.shapeType.slice(1);
+    } else {
+      icon = '?'; name = 'Unknown';
+    }
     return `<div class="layer-item ${el.id === S.selectedId ? 'sel' : ''}" data-layer-id="${el.id}">
       <span class="layer-icon">${icon}</span>
       <span class="layer-name">${name}</span>
@@ -860,6 +937,15 @@ function renderProps() {
       <div class="prop-row"><label>Text</label><label class="toggle-wrap" style="width:auto">
         <input type="checkbox" ${el.showText?'checked':''} data-toggle="showText" data-bc="1"> Show value
       </label></div>
+    </div>`;
+  } else if (el.type === 'shape') {
+    h += `<div class="prop-section"><div class="prop-section-title">Shape</div>
+      <div class="prop-row"><label>Type</label><span class="prop-value">${el.shapeType}</span></div>
+      <div class="prop-row"><label>Width</label><input type="number" value="${el.width.toFixed(1)}" step="0.5" min="1" data-prop="width"><span class="unit">mm</span></div>
+      <div class="prop-row"><label>Height</label><input type="number" value="${el.height.toFixed(1)}" step="0.5" min="${el.shapeType === 'line' ? '0.1' : '1'}" data-prop="height"><span class="unit">mm</span></div>
+      ${el.shapeType !== 'line' ? `<div class="prop-row"><label>Fill</label><input type="color" value="${el.fillColor && el.fillColor !== 'none' ? el.fillColor : '#3b82f6'}" data-prop="fillColor"></div>` : ''}
+      <div class="prop-row"><label>Stroke</label><input type="color" value="${el.strokeColor || '#000000'}" data-prop="strokeColor"></div>
+      <div class="prop-row"><label>Stroke W</label><input type="number" value="${(el.strokeWidth || 0).toFixed(1)}" step="0.1" min="0" max="5" data-prop="strokeWidth"><span class="unit">mm</span></div>
     </div>`;
   }
 
@@ -913,10 +999,27 @@ function addBarcodeElement(type, data, w, h, showText) {
   renderCanvas();
 }
 
+function addShapeElement(shapeType, x, y) {
+  const el = {
+    id: uid(), type: 'shape', shapeType: shapeType,
+    x: Math.max(0, x), y: Math.max(0, y),
+    width: shapeType === 'line' ? 15 : 10,
+    height: shapeType === 'line' ? 0.5 : 8,
+    fillColor: shapeType === 'line' ? 'none' : '#3b82f6',
+    strokeColor: '#000000',
+    strokeWidth: shapeType === 'line' ? 0.5 : 0,
+  };
+  S.elements.push(el);
+  S.selectedId = el.id;
+  S.activeTool = 'select';
+  setActiveTool('select');
+  renderCanvas();
+}
+
 function updateEl(id, prop, val) {
   const el = elById(id);
   if (!el) return;
-  if (prop === 'x' || prop === 'y' || prop === 'fontSize' || prop === 'width' || prop === 'height') val = parseFloat(val);
+  if (prop === 'x' || prop === 'y' || prop === 'fontSize' || prop === 'width' || prop === 'height' || prop === 'strokeWidth') val = parseFloat(val);
   el[prop] = val;
   // Regenerate barcode if needed
   if (el.type === 'barcode' && ['data','width','height','showText'].includes(prop)) {
@@ -1042,6 +1145,27 @@ function onCanvasDown(e) {
     finishEditing(true);
   }
 
+  // Check if clicking on a resize handle
+  const resizeHandle = e.target.closest('.resize-handle');
+  if (resizeHandle) {
+    const elDom = resizeHandle.closest('.canvas-element');
+    if (elDom) {
+      const id = elDom.dataset.id;
+      const el = elById(id);
+      if (el) {
+        const rect = canvasEl.getBoundingClientRect();
+        drag = {
+          active: true, id, resize: resizeHandle.dataset.resize,
+          startX: e.clientX, startY: e.clientY,
+          origX: el.x, origY: el.y, origW: el.width, origH: el.height,
+          moved: false, sx: e.clientX, sy: e.clientY,
+        };
+        e.preventDefault();
+        return;
+      }
+    }
+  }
+
   const elDom = e.target.closest('.canvas-element');
   if (elDom) {
     const id = elDom.dataset.id;
@@ -1069,6 +1193,10 @@ function onCanvasDown(e) {
     addTextElement(pxMm(e.clientX - rect.left), pxMm(e.clientY - rect.top));
   } else if (S.activeTool.startsWith('barcode-')) {
     openBarcodeModal(S.activeTool.replace('barcode-', ''));
+  } else if (S.activeTool.startsWith('shape-')) {
+    const rect = canvasEl.getBoundingClientRect();
+    const shapeType = S.activeTool.replace('shape-', '');
+    addShapeElement(shapeType, pxMm(e.clientX - rect.left), pxMm(e.clientY - rect.top));
   } else {
     S.selectedId = null;
     renderLayers();
@@ -1092,6 +1220,44 @@ function onDocMove(e) {
   if (!drag.moved && (Math.abs(dx) + Math.abs(dy)) > 3) drag.moved = true;
   if (!drag.moved) return;
 
+  // Resize mode
+  if (drag.resize) {
+    const el = elById(drag.id);
+    if (!el) return;
+    const dxMm = pxMm(e.clientX - drag.startX);
+    const dyMm = pxMm(e.clientY - drag.startY);
+    const minW = 1, minH = el.shapeType === 'line' ? 0.1 : 1;
+    if (drag.resize === 'se') {
+      el.width = Math.max(minW, Math.round((drag.origW + dxMm) * 2) / 2);
+      el.height = Math.max(minH, Math.round((drag.origH + dyMm) * 2) / 2);
+    } else if (drag.resize === 'sw') {
+      const newW = Math.max(minW, Math.round((drag.origW - dxMm) * 2) / 2);
+      el.x = Math.round((drag.origX + drag.origW - newW) * 2) / 2;
+      el.width = newW;
+      el.height = Math.max(minH, Math.round((drag.origH + dyMm) * 2) / 2);
+    } else if (drag.resize === 'ne') {
+      el.width = Math.max(minW, Math.round((drag.origW + dxMm) * 2) / 2);
+      const newH = Math.max(minH, Math.round((drag.origH - dyMm) * 2) / 2);
+      el.y = Math.round((drag.origY + drag.origH - newH) * 2) / 2;
+      el.height = newH;
+    } else if (drag.resize === 'nw') {
+      const newW = Math.max(minW, Math.round((drag.origW - dxMm) * 2) / 2);
+      const newH = Math.max(minH, Math.round((drag.origH - dyMm) * 2) / 2);
+      el.x = Math.round((drag.origX + drag.origW - newW) * 2) / 2;
+      el.y = Math.round((drag.origY + drag.origH - newH) * 2) / 2;
+      el.width = newW;
+      el.height = newH;
+    }
+    const dom = canvasEl.querySelector(`[data-id="${drag.id}"]`);
+    if (dom) {
+      dom.style.left = mmPx(el.x) + 'px';
+      dom.style.top = mmPx(el.y) + 'px';
+      dom.style.width = mmPx(el.width) + 'px';
+      dom.style.height = mmPx(el.height) + 'px';
+    }
+    return;
+  }
+
   const crect = canvasEl.getBoundingClientRect();
   let x = pxMm(e.clientX - crect.left - drag.ox);
   let y = pxMm(e.clientY - crect.top - drag.oy);
@@ -1112,7 +1278,10 @@ function onDocMove(e) {
 
 function onDocUp(e) {
   if (drag.active) {
-    if (drag.moved) renderProps(); // Update position in props
+    if (drag.moved) {
+      if (drag.resize) renderCanvas(); // Full re-render after resize
+      renderProps();
+    }
     drag.active = false;
   }
 }
@@ -1290,6 +1459,42 @@ function exportPNG() {
           ctx.drawImage(bcv, x, y, w, h);
         } catch (e) { console.warn('Barcode export error', e); }
       }
+    } else if (el.type === 'shape') {
+      const w = el.width * ppm;
+      const h = el.height * ppm;
+      const sw = (el.strokeWidth || 0) * ppm;
+      ctx.save();
+      if (el.shapeType === 'rect') {
+        if (el.fillColor && el.fillColor !== 'none') {
+          ctx.fillStyle = el.fillColor;
+          ctx.fillRect(x, y, w, h);
+        }
+        if (sw > 0) {
+          ctx.strokeStyle = el.strokeColor || '#000000';
+          ctx.lineWidth = sw;
+          ctx.strokeRect(x, y, w, h);
+        }
+      } else if (el.shapeType === 'ellipse') {
+        ctx.beginPath();
+        ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+        if (el.fillColor && el.fillColor !== 'none') {
+          ctx.fillStyle = el.fillColor;
+          ctx.fill();
+        }
+        if (sw > 0) {
+          ctx.strokeStyle = el.strokeColor || '#000000';
+          ctx.lineWidth = sw;
+          ctx.stroke();
+        }
+      } else if (el.shapeType === 'line') {
+        ctx.beginPath();
+        ctx.moveTo(x, y + h / 2);
+        ctx.lineTo(x + w, y + h / 2);
+        ctx.strokeStyle = el.strokeColor || '#000000';
+        ctx.lineWidth = sw > 0 ? sw : ppm * 0.3;
+        ctx.stroke();
+      }
+      ctx.restore();
     }
   }
 
@@ -1367,6 +1572,42 @@ function printLabel() {
           ctx.drawImage(bcv, x, y, w, h);
         } catch (e) { console.warn('Barcode print error', e); }
       }
+    } else if (el.type === 'shape') {
+      const w = el.width * ppm;
+      const h = el.height * ppm;
+      const sw = (el.strokeWidth || 0) * ppm;
+      ctx.save();
+      if (el.shapeType === 'rect') {
+        if (el.fillColor && el.fillColor !== 'none') {
+          ctx.fillStyle = el.fillColor;
+          ctx.fillRect(x, y, w, h);
+        }
+        if (sw > 0) {
+          ctx.strokeStyle = el.strokeColor || '#000000';
+          ctx.lineWidth = sw;
+          ctx.strokeRect(x, y, w, h);
+        }
+      } else if (el.shapeType === 'ellipse') {
+        ctx.beginPath();
+        ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+        if (el.fillColor && el.fillColor !== 'none') {
+          ctx.fillStyle = el.fillColor;
+          ctx.fill();
+        }
+        if (sw > 0) {
+          ctx.strokeStyle = el.strokeColor || '#000000';
+          ctx.lineWidth = sw;
+          ctx.stroke();
+        }
+      } else if (el.shapeType === 'line') {
+        ctx.beginPath();
+        ctx.moveTo(x, y + h / 2);
+        ctx.lineTo(x + w, y + h / 2);
+        ctx.strokeStyle = el.strokeColor || '#000000';
+        ctx.lineWidth = sw > 0 ? sw : ppm * 0.3;
+        ctx.stroke();
+      }
+      ctx.restore();
     }
   }
 
@@ -1394,7 +1635,7 @@ function setActiveTool(tool) {
   S.activeTool = tool;
   document.querySelectorAll('.tool-btn').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
   // Change cursor
-  canvasEl.style.cursor = tool === 'text' ? 'crosshair' : (tool.startsWith('barcode') ? 'crosshair' : 'default');
+  canvasEl.style.cursor = (tool === 'text' || tool.startsWith('barcode') || tool.startsWith('shape')) ? 'crosshair' : 'default';
 }
 
 function setZoom(z) {
