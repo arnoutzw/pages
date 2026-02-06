@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datasheet Search</title>
+<style>
+:root {
+  --bg-0: #09090b;
+  --bg-1: #18181b;
+  --bg-2: #27272a;
+  --bg-3: #3f3f46;
+  --tx-1: #f4f4f5;
+  --tx-2: #a1a1aa;
+  --tx-3: #71717a;
+  --accent: #f59e0b;
+  --accent-h: #d97706;
+  --accent-bg: rgba(245,158,11,.12);
+  --danger: #ef4444;
+  --success: #22c55e;
+  --border: #27272a;
+  --radius: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-0);
+  color: var(--tx-1);
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  text-align: center;
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.header p {
+  font-size: 12px;
+  color: var(--tx-3);
+}
+
+/* Search */
+.search-wrap {
+  max-width: 640px;
+  margin: 24px auto 0;
+  padding: 0 16px;
+}
+.search-box {
+  display: flex;
+  gap: 8px;
+}
+.search-box input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--bg-1);
+  border: 1px solid var(--bg-3);
+  border-radius: var(--radius);
+  color: var(--tx-1);
+  font-size: 15px;
+  outline: none;
+  transition: border-color .15s;
+}
+.search-box input::placeholder { color: var(--tx-3); }
+.search-box input:focus { border-color: var(--accent); }
+.search-box button {
+  padding: 12px 24px;
+  background: var(--accent);
+  color: var(--bg-0);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.search-box button:hover { background: var(--accent-h); }
+.search-hint {
+  font-size: 11px;
+  color: var(--tx-3);
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Tabs */
+.tabs {
+  max-width: 640px;
+  margin: 20px auto 0;
+  padding: 0 16px;
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.tab-btn {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--tx-3);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+}
+.tab-btn:hover { color: var(--tx-2); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Content */
+.content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Quick search categories */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.cat-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.cat-card:hover { border-color: var(--accent); background: var(--accent-bg); }
+.cat-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-1);
+  margin-bottom: 4px;
+}
+.cat-card p {
+  font-size: 11px;
+  color: var(--tx-3);
+  line-height: 1.4;
+}
+.cat-card .cat-icon {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+/* Common parts */
+.parts-section {
+  margin-bottom: 20px;
+}
+.parts-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--tx-3);
+  margin-bottom: 8px;
+}
+.parts-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.part-chip {
+  padding: 5px 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--tx-2);
+  cursor: pointer;
+  transition: all .12s;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+.part-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+/* History / Bookmarks list */
+.list-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--tx-3);
+  font-size: 13px;
+}
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+  transition: border-color .12s;
+}
+.list-item:hover { border-color: var(--bg-3); }
+.list-item-text {
+  flex: 1;
+  min-width: 0;
+}
+.list-item-query {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tx-1);
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.list-item-meta {
+  font-size: 11px;
+  color: var(--tx-3);
+  margin-top: 2px;
+}
+.list-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--tx-3);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all .12s;
+  border: none;
+}
+.icon-btn:hover { background: var(--bg-3); color: var(--tx-1); }
+.icon-btn.bookmarked { color: var(--accent); }
+.icon-btn.danger:hover { color: var(--danger); }
+.clear-btn {
+  display: block;
+  margin: 12px auto 0;
+  padding: 6px 16px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--tx-3);
+  font-size: 12px;
+  cursor: pointer;
+}
+.clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+/* Results status */
+.search-status {
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+  color: var(--tx-3);
+}
+.search-status a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.search-status a:hover { text-decoration: underline; }
+
+/* Source badges */
+.source-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--tx-2);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all .15s;
+}
+.source-link:hover { border-color: var(--accent); color: var(--accent); }
+.source-link .arrow { font-size: 11px; opacity: .6; }
+
+@media (max-width: 480px) {
+  .cat-grid { grid-template-columns: 1fr 1fr; }
+  .search-box { flex-direction: column; }
+  .search-box button { width: 100%; }
+  .header { padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Datasheet Search
+  </h1>
+  <p>Search electronic component datasheets across multiple sources</p>
+</div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="Enter part number (e.g. LM7805, ATmega328P, NE555)..." autofocus>
+    <button id="btn-search">Search</button>
+  </div>
+  <div class="search-hint">Press Enter to search &bull; Results open on datasheet provider sites</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="browse">Browse</button>
+  <button class="tab-btn" data-tab="history">History</button>
+  <button class="tab-btn" data-tab="bookmarks">Bookmarks</button>
+</div>
+
+<div class="content">
+
+  <!-- Browse tab -->
+  <div class="tab-panel active" id="tab-browse">
+
+    <div id="search-results" style="display:none"></div>
+
+    <div id="browse-content">
+      <div class="parts-section">
+        <div class="parts-title">Popular Components</div>
+        <div class="parts-chips" id="popular-chips"></div>
+      </div>
+
+      <div class="parts-section">
+        <div class="parts-title">Quick Categories</div>
+        <div class="cat-grid" id="cat-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History tab -->
+  <div class="tab-panel" id="tab-history">
+    <div id="history-list"></div>
+  </div>
+
+  <!-- Bookmarks tab -->
+  <div class="tab-panel" id="tab-bookmarks">
+    <div id="bookmarks-list"></div>
+  </div>
+
+</div>
+
+<script>
+// ===================================================================
+// DATASHEET SEARCH APP
+// ===================================================================
+
+const STORAGE_KEYS = { history: 'ds-search-history', bookmarks: 'ds-search-bookmarks' };
+
+// Datasheet sources — search URL templates
+const SOURCES = [
+  { name: 'AllDatasheet',    url: 'https://www.alldatasheet.com/view.jsp?Searchword={q}',              icon: '📄' },
+  { name: 'Datasheet Archive', url: 'https://www.datasheetarchive.com/search?q={q}',                     icon: '🗄️' },
+  { name: 'Octopart',        url: 'https://octopart.com/search?q={q}',                                 icon: '🔍' },
+  { name: 'DigiKey',         url: 'https://www.digikey.com/en/products/result?keywords={q}',            icon: '🛒' },
+  { name: 'Mouser',          url: 'https://www.mouser.com/c/?q={q}',                                   icon: '🛒' },
+  { name: 'LCSC',            url: 'https://www.lcsc.com/search?q={q}',                                 icon: '🛒' },
+];
+
+const POPULAR = [
+  'NE555','LM7805','LM317','ATmega328P','ESP32','STM32F103',
+  'LM358','TL072','LM393','IRF540N','TIP120','2N2222',
+  'AMS1117-3.3','MCP2515','MAX232','74HC595','CD4017','LM386',
+  'W25Q128','ADS1115','BME280','MPU6050','INA219','TPS63020',
+];
+
+const CATEGORIES = [
+  { icon: '⚡', title: 'Voltage Regulators', desc: 'Linear & switching regulators', parts: ['LM7805','LM317','AMS1117','TPS63020','LM2596','AP2112'] },
+  { icon: '🔊', title: 'Op-Amps & Audio', desc: 'Operational amplifiers, audio ICs', parts: ['LM358','TL072','NE5532','LM386','TDA2030','LM4871'] },
+  { icon: '🧠', title: 'Microcontrollers', desc: 'MCUs and development chips', parts: ['ATmega328P','ESP32','STM32F103','PIC16F877','RP2040','ATTINY85'] },
+  { icon: '📡', title: 'Communication', desc: 'UART, SPI, I2C, CAN, RF', parts: ['MAX232','MCP2515','MCP2551','NRF24L01','CC1101','SX1276'] },
+  { icon: '💡', title: 'LED Drivers', desc: 'Constant current & PWM drivers', parts: ['WS2812B','TLC5940','PCA9685','AL8805','PT4115','CAT4101'] },
+  { icon: '🔌', title: 'Transistors & MOSFETs', desc: 'BJTs, MOSFETs, IGBTs', parts: ['2N2222','BC547','IRF540N','IRFZ44N','TIP120','IRF3205'] },
+  { icon: '📐', title: 'Sensors', desc: 'Temperature, motion, pressure', parts: ['BME280','MPU6050','DHT22','DS18B20','BMP280','ADXL345'] },
+  { icon: '💾', title: 'Memory & Storage', desc: 'EEPROM, Flash, SRAM', parts: ['W25Q128','AT24C256','23LC1024','IS62WV1288','SST39SF040','M25P16'] },
+  { icon: '⏱️', title: 'Timers & Logic', desc: '555 timers, logic gates, counters', parts: ['NE555','74HC595','CD4017','74HC245','SN74LVC1G14','CD4051'] },
+  { icon: '🔋', title: 'Power Management', desc: 'Battery chargers, converters', parts: ['TP4056','BQ24195','TPS54331','INA219','MAX17048','LTC3780'] },
+];
+
+// --- State ---
+let searchHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.history) || '[]');
+let bookmarks = JSON.parse(localStorage.getItem(STORAGE_KEYS.bookmarks) || '[]');
+
+function saveHistory() { localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(searchHistory)); }
+function saveBookmarks() { localStorage.setItem(STORAGE_KEYS.bookmarks, JSON.stringify(bookmarks)); }
+
+// --- Search ---
+function doSearch(query) {
+  query = query.trim();
+  if (!query) return;
+
+  // Update input
+  document.getElementById('search-input').value = query;
+
+  // Add to history (dedup, most recent first)
+  searchHistory = searchHistory.filter(h => h.query.toLowerCase() !== query.toLowerCase());
+  searchHistory.unshift({ query, timestamp: Date.now() });
+  if (searchHistory.length > 50) searchHistory.length = 50;
+  saveHistory();
+
+  // Show results
+  showSearchResults(query);
+
+  // Switch to browse tab
+  switchTab('browse');
+
+  // Open AllDatasheet in new tab (primary source)
+  window.open(SOURCES[0].url.replace('{q}', encodeURIComponent(query)), '_blank');
+}
+
+function showSearchResults(query) {
+  const resultsEl = document.getElementById('search-results');
+  const browseEl = document.getElementById('browse-content');
+
+  const isBookmarked = bookmarks.some(b => b.query.toLowerCase() === query.toLowerCase());
+
+  let html = `<div class="search-status">
+    <p>Searching for <strong style="color:var(--accent);font-family:'Courier New',monospace">${escHtml(query)}</strong></p>
+    <p style="margin-top:4px">AllDatasheet opened in a new tab.
+      <button class="icon-btn${isBookmarked ? ' bookmarked' : ''}" onclick="toggleBookmark('${escAttr(query)}')" title="${isBookmarked ? 'Remove bookmark' : 'Bookmark this search'}" style="display:inline-flex;vertical-align:middle;margin-left:4px">${isBookmarked ? '★' : '☆'}</button>
+    </p>
+  </div>`;
+  html += '<div class="source-row">';
+  for (const src of SOURCES) {
+    const url = src.url.replace('{q}', encodeURIComponent(query));
+    html += `<a href="${url}" target="_blank" rel="noopener" class="source-link">${src.icon} ${src.name} <span class="arrow">↗</span></a>`;
+  }
+  html += '</div>';
+
+  resultsEl.innerHTML = html;
+  resultsEl.style.display = 'block';
+  browseEl.style.display = 'none';
+}
+
+function clearSearchResults() {
+  document.getElementById('search-results').style.display = 'none';
+  document.getElementById('browse-content').style.display = '';
+}
+
+// --- Bookmarks ---
+function toggleBookmark(query) {
+  const idx = bookmarks.findIndex(b => b.query.toLowerCase() === query.toLowerCase());
+  if (idx >= 0) {
+    bookmarks.splice(idx, 1);
+  } else {
+    bookmarks.unshift({ query, timestamp: Date.now() });
+  }
+  saveBookmarks();
+  // Re-render if results are showing
+  if (document.getElementById('search-results').style.display !== 'none') {
+    showSearchResults(query);
+  }
+  renderBookmarks();
+}
+
+// --- Render ---
+function renderPopular() {
+  const el = document.getElementById('popular-chips');
+  el.innerHTML = POPULAR.map(p =>
+    `<div class="part-chip" onclick="doSearch('${p}')">${p}</div>`
+  ).join('');
+}
+
+function renderCategories() {
+  const el = document.getElementById('cat-grid');
+  el.innerHTML = CATEGORIES.map((cat, i) =>
+    `<div class="cat-card" onclick="showCategory(${i})">
+      <div class="cat-icon">${cat.icon}</div>
+      <h3>${cat.title}</h3>
+      <p>${cat.desc}</p>
+    </div>`
+  ).join('');
+}
+
+function showCategory(idx) {
+  const cat = CATEGORIES[idx];
+  const el = document.getElementById('popular-chips');
+  // Replace popular with category parts
+  el.innerHTML = cat.parts.map(p =>
+    `<div class="part-chip" onclick="doSearch('${p}')">${p}</div>`
+  ).join('');
+  // Update title
+  el.previousElementSibling.innerHTML = cat.icon + ' ' + cat.title;
+  // Scroll to top
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (searchHistory.length === 0) {
+    el.innerHTML = '<div class="list-empty">No search history yet.<br>Your searches will appear here.</div>';
+    return;
+  }
+  let html = searchHistory.map(h => {
+    const date = new Date(h.timestamp);
+    const ago = timeAgo(date);
+    const isBookmarked = bookmarks.some(b => b.query.toLowerCase() === h.query.toLowerCase());
+    return `<div class="list-item">
+      <div class="list-item-text" onclick="doSearch('${escAttr(h.query)}')" style="cursor:pointer">
+        <div class="list-item-query">${escHtml(h.query)}</div>
+        <div class="list-item-meta">${ago}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="icon-btn${isBookmarked ? ' bookmarked' : ''}" onclick="toggleBookmark('${escAttr(h.query)}')" title="Bookmark">
+          ${isBookmarked ? '★' : '☆'}
+        </button>
+        <button class="icon-btn danger" onclick="removeHistory('${escAttr(h.query)}')" title="Remove">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+  html += '<button class="clear-btn" onclick="clearHistory()">Clear All History</button>';
+  el.innerHTML = html;
+}
+
+function renderBookmarks() {
+  const el = document.getElementById('bookmarks-list');
+  if (bookmarks.length === 0) {
+    el.innerHTML = '<div class="list-empty">No bookmarks yet.<br>Star a search to save it here.</div>';
+    return;
+  }
+  el.innerHTML = bookmarks.map(b => {
+    const date = new Date(b.timestamp);
+    return `<div class="list-item">
+      <div class="list-item-text" onclick="doSearch('${escAttr(b.query)}')" style="cursor:pointer">
+        <div class="list-item-query">${escHtml(b.query)}</div>
+        <div class="list-item-meta">Saved ${timeAgo(date)}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="icon-btn danger" onclick="removeBookmark('${escAttr(b.query)}')" title="Remove">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function removeHistory(query) {
+  searchHistory = searchHistory.filter(h => h.query !== query);
+  saveHistory();
+  renderHistory();
+}
+
+function clearHistory() {
+  searchHistory = [];
+  saveHistory();
+  renderHistory();
+}
+
+function removeBookmark(query) {
+  bookmarks = bookmarks.filter(b => b.query !== query);
+  saveBookmarks();
+  renderBookmarks();
+  // Update results view if showing
+  if (document.getElementById('search-results').style.display !== 'none') {
+    const input = document.getElementById('search-input').value.trim();
+    if (input) showSearchResults(input);
+  }
+}
+
+// --- Tabs ---
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  if (name === 'history') renderHistory();
+  if (name === 'bookmarks') renderBookmarks();
+  if (name === 'browse') {
+    const q = document.getElementById('search-input').value.trim();
+    if (!q) clearSearchResults();
+  }
+}
+
+// --- Helpers ---
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+function timeAgo(date) {
+  const s = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  if (s < 604800) return Math.floor(s / 86400) + 'd ago';
+  return date.toLocaleDateString();
+}
+
+// --- Init ---
+document.getElementById('btn-search').addEventListener('click', () => doSearch(document.getElementById('search-input').value));
+document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(e.target.value); });
+document.getElementById('search-input').addEventListener('input', e => { if (!e.target.value.trim()) clearSearchResults(); });
+document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+renderPopular();
+renderCategories();
+renderHistory();
+renderBookmarks();
+</script>
+</body>
+</html>

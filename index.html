@@ -128,7 +128,7 @@
       TAGLINE: 'Building things that work (mostly)',
 
       // Repos to exclude (by name)
-      EXCLUDE_REPOS: ['lab-inventory', 'label-designer', 'resistor-colorcode-gen', 'pages'], // Exclude embedded apps and the pages repo itself
+      EXCLUDE_REPOS: ['lab-inventory', 'label-designer', 'resistor-colorcode-gen', 'datasheet-search', 'model-library', 'pages'], // Exclude embedded apps and the pages repo itself
 
       // Only show repos with these topics (leave empty to show all)
       FILTER_TOPICS: [],
@@ -184,6 +184,24 @@
           icon: 'Cpu',
           url: './resistor-colorcode-gen/index.html',
           description: '4-band resistor color code generator',
+          isLocal: true,
+          fullscreen: true
+        },
+        {
+          id: 'datasheet-search',
+          name: 'Datasheets',
+          icon: 'FileSearch',
+          url: './datasheet-search/index.html',
+          description: 'Search component datasheets',
+          isLocal: true,
+          fullscreen: true
+        },
+        {
+          id: 'model-library',
+          name: '3D Models',
+          icon: 'Box',
+          url: './model-library/index.html',
+          description: 'STL/3MF model library and viewer',
           isLocal: true,
           fullscreen: true
         }
@@ -1052,7 +1070,7 @@
 
                 {/* Navigation Tabs */}
                 <div className="flex items-center gap-2">
-                  <NavTab active={activeView === 'projects'} icon="FolderGit2" label="Projects"
+                  <NavTab active={activeView === 'projects'} icon="FolderGit2" label="Original Projects"
                           onClick={() => setActiveView('projects')} />
                   <NavTab active={activeView === 'forked-projects'} icon="GitFork" label="Forked Projects"
                           onClick={() => setActiveView('forked-projects')} />
