@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a365d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EngCalc">
+<meta name="description" content="35+ native engineering calculators for mechanical design, tribology, bearings, fatigue, and more.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Engineering Calculators PWA</title>
+<style>
+:root {
+  --sidebar-w: 300px;
+  --header-h: 56px;
+  --bg: #f0f2f5;
+  --sidebar-bg: #1a2332;
+  --sidebar-hover: #243044;
+  --sidebar-active: #2c5282;
+  --accent: #3b82f6;
+  --accent-light: #60a5fa;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --card-bg: #fff;
+  --card-border: #e2e8f0;
+  --input-bg: #f8fafc;
+  --input-border: #cbd5e1;
+  --output-bg: #f0fdf4;
+  --output-border: #86efac;
+  --cat-contact: #3b82f6;
+  --cat-bearing-roll: #22c55e;
+  --cat-bearing-hydro: #06b6d4;
+  --cat-bearing-air: #8b5cf6;
+  --cat-shaft: #f59e0b;
+  --cat-fastener: #ef4444;
+  --cat-fatigue: #ec4899;
+  --cat-fluid: #6366f1;
+  --cat-dynamics: #14b8a6;
+  --cat-power: #f97316;
+  --cat-material: #a855f7;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); overflow: hidden; height: 100vh; width: 100vw; }
+
+/* HEADER */
+.header { position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); background: linear-gradient(135deg, #1a365d, #2c5282); display: flex; align-items: center; padding: 0 16px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.menu-btn { width: 40px; height: 40px; background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: background .15s; flex-shrink: 0; }
+.menu-btn:hover { background: rgba(255,255,255,.1); }
+.menu-btn svg { width: 24px; height: 24px; }
+.header-title { color: white; font-size: 1.1rem; font-weight: 600; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-subtitle { color: rgba(255,255,255,.6); font-size: .8rem; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.header-badge { background: rgba(255,255,255,.15); color: rgba(255,255,255,.8); font-size: .7rem; padding: 3px 10px; border-radius: 12px; white-space: nowrap; }
+
+/* SIDEBAR */
+.sidebar { position: fixed; top: var(--header-h); left: 0; bottom: 0; width: var(--sidebar-w); background: var(--sidebar-bg); overflow-y: auto; overflow-x: hidden; z-index: 90; transition: transform .25s cubic-bezier(.4,0,.2,1); scrollbar-width: thin; scrollbar-color: #475569 transparent; }
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+.sidebar.collapsed { transform: translateX(-100%); }
+.sidebar-search { padding: 12px 14px 8px; position: sticky; top: 0; background: var(--sidebar-bg); z-index: 5; }
+.sidebar-search input { width: 100%; padding: 8px 12px 8px 36px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; color: var(--text); font-size: .85rem; outline: none; transition: border-color .15s; }
+.sidebar-search input::placeholder { color: var(--text-muted); }
+.sidebar-search input:focus { border-color: var(--accent); background: rgba(255,255,255,.12); }
+.search-icon { position: absolute; left: 26px; top: 22px; width: 16px; height: 16px; color: var(--text-muted); pointer-events: none; }
+.cat-group { margin-bottom: 4px; }
+.cat-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px 6px; cursor: pointer; user-select: none; }
+.cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cat-label { font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.cat-toggle { margin-left: auto; color: var(--text-muted); transition: transform .2s; width: 14px; height: 14px; }
+.cat-header.collapsed .cat-toggle { transform: rotate(-90deg); }
+.cat-items { overflow: hidden; }
+.cat-header.collapsed + .cat-items { display: none; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 32px; cursor: pointer; color: var(--text); font-size: .85rem; transition: background .12s; border-left: 3px solid transparent; text-decoration: none; }
+.nav-item:hover { background: var(--sidebar-hover); }
+.nav-item.active { background: var(--sidebar-active); border-left-color: var(--accent-light); color: white; }
+.nav-code { font-family: 'SF Mono','Fira Code',monospace; font-size: .7rem; color: var(--accent-light); background: rgba(59,130,246,.15); padding: 1px 6px; border-radius: 4px; flex-shrink: 0; }
+.nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* MAIN */
+.main { position: fixed; top: var(--header-h); bottom: 0; left: var(--sidebar-w); right: 0; transition: left .25s cubic-bezier(.4,0,.2,1); background: var(--bg); overflow-y: auto; }
+.main.expanded { left: 0; }
+
+/* WELCOME */
+.welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100%; padding: 32px; text-align: center; }
+.welcome.hidden { display: none; }
+.welcome-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #2c5282, #3b82f6); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(59,130,246,.25); }
+.welcome-icon svg { width: 40px; height: 40px; color: white; }
+.welcome h2 { font-size: 1.6rem; color: #1a2332; margin-bottom: 8px; }
+.welcome p { color: #64748b; max-width: 480px; font-size: .95rem; line-height: 1.6; }
+.quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 28px; max-width: 640px; width: 100%; }
+.quick-card { background: white; border-radius: 10px; padding: 14px; cursor: pointer; text-align: center; border: 1px solid #e2e8f0; transition: box-shadow .15s, transform .1s; }
+.quick-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); transform: translateY(-2px); }
+.quick-card .qc-icon { font-size: 1.3rem; margin-bottom: 6px; }
+.quick-card .qc-label { font-size: .78rem; color: #475569; font-weight: 500; }
+
+/* CALCULATOR PANELS */
+.calc-panel { display: none; padding: 24px; max-width: 860px; margin: 0 auto; }
+.calc-panel.active { display: block; }
+.calc-title { font-size: 1.3rem; font-weight: 700; color: #1a2332; margin-bottom: 4px; }
+.calc-desc { color: #64748b; font-size: .9rem; margin-bottom: 20px; line-height: 1.5; }
+.calc-section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.calc-section h3 { font-size: .85rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.calc-section h3 .dot { width: 8px; height: 8px; border-radius: 50%; }
+.input-dot { background: var(--accent); }
+.output-dot { background: #22c55e; }
+.formula-dot { background: #a855f7; }
+
+.field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.field { display: flex; flex-direction: column; }
+.field label { font-size: .78rem; color: #64748b; margin-bottom: 4px; font-weight: 500; }
+.field label .unit { color: #94a3b8; font-weight: 400; }
+.field input, .field select { padding: 8px 10px; border: 1px solid var(--input-border); border-radius: 6px; font-size: .9rem; background: var(--input-bg); outline: none; transition: border-color .15s; }
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field input[readonly] { background: var(--output-bg); border-color: var(--output-border); color: #166534; font-weight: 600; cursor: default; }
+.field input.warn { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+
+.calc-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: .9rem; cursor: pointer; transition: background .15s; margin-top: 8px; }
+.calc-btn:hover { background: #2563eb; }
+.formula-box { background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 14px 16px; margin-top: 12px; font-family: 'SF Mono','Fira Code',monospace; font-size: .82rem; color: #6b21a8; line-height: 1.7; white-space: pre-wrap; overflow-x: auto; }
+
+/* OVERLAY (mobile) */
+.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 85; display: none; cursor: pointer; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 280px; }
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.show { display: block; }
+  .main { left: 0 !important; }
+  .header-subtitle { display: none; }
+  .field-grid { grid-template-columns: 1fr; }
+}
+
+/* REFERENCE TABLE */
+.ref-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: 8px; }
+.ref-table th { background: #f1f5f9; text-align: left; padding: 6px 10px; border-bottom: 2px solid #cbd5e1; font-weight: 600; color: #475569; white-space: nowrap; }
+.ref-table td { padding: 5px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+.ref-table tr:hover td { background: #f8fafc; }
+
+/* INSTALL BANNER */
+.install-banner { display: none; align-items: center; gap: 12px; background: #1e3a5f; padding: 10px 16px; position: fixed; top: var(--header-h); left: 0; right: 0; z-index: 95; }
+.install-banner.show { display: flex; }
+.install-banner p { color: white; font-size: .85rem; flex: 1; }
+.install-btn { background: var(--accent); color: white; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: .82rem; }
+.install-dismiss { background: none; border: none; color: rgba(255,255,255,.6); cursor: pointer; font-size: 1.2rem; padding: 4px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <button class="menu-btn" id="menuBtn" aria-label="Toggle sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <span class="header-title" id="headerTitle">Engineering Calculators</span>
+  <span class="header-subtitle" id="headerSub">Tribology &amp; Machine Design</span>
+  <div class="header-right"><span class="header-badge">35+ native calcs</span></div>
+</header>
+
+<div class="install-banner" id="installBanner">
+  <p>Install this app for quick access</p>
+  <button class="install-btn" id="installBtn">Install</button>
+  <button class="install-dismiss" id="installDismiss">&times;</button>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-search">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="Search calculators... (Ctrl+K)" autocomplete="off">
+  </div>
+  <div id="navList"></div>
+</nav>
+
+<div class="main" id="main">
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </div>
+    <h2>Engineering Calculators</h2>
+    <p>35+ native mechanical engineering calculators. All calculations run locally in your browser — no server needed, works offline.</p>
+    <div class="quick-grid" id="quickGrid"></div>
+  </div>
+  <div id="calcContainer"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// ENGINEERING CONSTANTS & MATERIAL DATA
+// ═══════════════════════════════════════════════
+const MAT = {
+  'Steel (general)': { E: 210000, nu: 0.30 },
+  'Steel 100Cr6': { E: 210000, nu: 0.30 },
+  'Cast Iron': { E: 150000, nu: 0.25 },
+  'Aluminum': { E: 70000, nu: 0.33 },
+  'Brass': { E: 100000, nu: 0.34 },
+  'Bronze': { E: 110000, nu: 0.34 },
+  'Titanium': { E: 114000, nu: 0.34 },
+  'Copper': { E: 120000, nu: 0.34 },
+  'PTFE': { E: 500, nu: 0.46 },
+};
+
+const THREAD_DATA = {
+  'M3':  {d:3,   P:0.5,  d2:2.675, d3:2.387, As:5.03},
+  'M4':  {d:4,   P:0.7,  d2:3.545, d3:3.141, As:8.78},
+  'M5':  {d:5,   P:0.8,  d2:4.480, d3:3.975, As:14.2},
+  'M6':  {d:6,   P:1.0,  d2:5.350, d3:4.773, As:20.1},
+  'M8':  {d:8,   P:1.25, d2:7.188, d3:6.466, As:36.6},
+  'M10': {d:10,  P:1.5,  d2:9.026, d3:8.160, As:58.0},
+  'M12': {d:12,  P:1.75, d2:10.863,d3:9.853, As:84.3},
+  'M14': {d:14,  P:2.0,  d2:12.701,d3:11.546,As:115},
+  'M16': {d:16,  P:2.0,  d2:14.701,d3:13.546,As:157},
+  'M18': {d:18,  P:2.5,  d2:16.376,d3:15.294,As:192},
+  'M20': {d:20,  P:2.5,  d2:18.376,d3:17.294,As:245},
+  'M22': {d:22,  P:2.5,  d2:20.376,d3:19.294,As:303},
+  'M24': {d:24,  P:3.0,  d2:22.051,d3:21.052,As:353},
+  'M27': {d:27,  P:3.0,  d2:25.051,d3:24.052,As:459},
+  'M30': {d:30,  P:3.5,  d2:27.727,d3:26.211,As:561},
+};
+
+const BOLT_CLASS = {
+  '4.6':  {Su:400, Sp:240},
+  '5.6':  {Su:500, Sp:300},
+  '8.8':  {Su:800, Sp:640},
+  '10.9': {Su:1000,Sp:900},
+  '12.9': {Su:1200,Sp:1080},
+};
+
+const RELIABILITY = {50:1.000, 90:0.897, 95:0.868, 99:0.814, 99.9:0.753, 99.99:0.702};
+
+const SURFACE_FINISH = {
+  'Ground':     {a:1.58, b:-0.085},
+  'Machined':   {a:4.51, b:-0.265},
+  'Hot-rolled': {a:57.7, b:-0.718},
+  'As-forged':  {a:272,  b:-0.995},
+};
+
+const PIPE_ROUGHNESS = {
+  'Steel (new)': 0.045,
+  'Steel (corroded)': 0.3,
+  'Cast iron': 0.26,
+  'Copper/Brass': 0.0015,
+  'PVC/Plastic': 0.0015,
+  'Concrete': 1.0,
+  'Galvanized': 0.15,
+};
+
+// ═══════════════════════════════════════════════
+// CALCULATOR DEFINITIONS
+// ═══════════════════════════════════════════════
+const CALCS = [
+  // ── CONTACT MECHANICS ──
+  {id:'e2_1', name:'Hertzian Point Contact', cat:'Contact Mechanics', color:'var(--cat-contact)', icon:'⚙️',
+   desc:'Contact pressure and deformation for two curved bodies in point contact (ball-on-flat, ball-on-ball). Matches werktuigbouw.nl/e2_1.',
+   inputs:[
+     {id:'E1',label:"Young's modulus E₁",unit:'GPa',val:213},
+     {id:'E2',label:"Young's modulus E₂",unit:'GPa',val:213},
+     {id:'nu1',label:'Poisson\'s ratio ν₁',unit:'—',val:0.29},
+     {id:'nu2',label:'Poisson\'s ratio ν₂',unit:'—',val:0.29},
+     {id:'R1',label:'Radius R₁ (0 = flat)',unit:'mm',val:5},
+     {id:'R2',label:'Radius R₂ (0 = flat)',unit:'mm',val:0},
+     {id:'F',label:'Normal force F',unit:'N',val:100},
+   ],
+   outputs:["Ep|Effective Young's modulus E'|GPa","Rp|Effective contact radius R'|mm",'r|Semi contact width r|mm','delta|Indentation δ|µm','k|Contact stiffness|10⁶ N/m','pm|Mean contact pressure p_m|GPa','pmax|Max contact pressure p_max|GPa'],
+   calc(v){
+     const Ep = 2/((1-v.nu1**2)/v.E1 + (1-v.nu2**2)/v.E2);
+     let inv_Rp = 0;
+     if(v.R1 > 0) inv_Rp += 2/v.R1;
+     if(v.R2 > 0) inv_Rp += 2/v.R2;
+     if(inv_Rp === 0) return {'Ep':'—','Rp':'—','r':'—','delta':'—','k':'—','pm':'—','pmax':'—'};
+     const Rp = 1/inv_Rp;
+     const Ep_Pa = Ep*1e9, Rp_m = Rp*1e-3, Estar = Ep_Pa/2, Req = 2*Rp_m;
+     const a = Math.pow(3*v.F*Req/(4*Estar),1/3);
+     const delta = Math.pow(9*v.F*v.F/(16*Req*Estar*Estar),1/3);
+     const k = 1.5*v.F/delta;
+     const Ac = Math.PI*a*a;
+     const pm = v.F/Ac;
+     const pmax = 1.5*pm;
+     return {'Ep':Ep.toFixed(1),'Rp':Rp.toFixed(2),'r':(a*1e3).toFixed(2),'delta':(delta*1e6).toFixed(2),'k':(k/1e6).toFixed(2),'pm':(pm/1e9).toFixed(2),'pmax':(pmax/1e9).toFixed(2)};
+   },
+   formula:"2/E' = (1−ν₁²)/E₁ + (1−ν₂²)/E₂\n1/R' = Σ(1/R_ij) principal curvatures\na = ∛(3FR_eq / 4E*) where R_eq=2R', E*=E'/2\nδ = ∛(9F² / 16R_eq·E*²)\nk = 3F/(2δ)\np_m = F/(πa²)\np_max = 1.5·p_m"
+  },
+
+  {id:'e2_3', name:'Hertzian Line Contact', cat:'Contact Mechanics', color:'var(--cat-contact)', icon:'⚙️',
+   desc:'Contact half-width and pressure for two parallel cylinders in line contact. Matches werktuigbouw.nl/e2_3.',
+   inputs:[
+     {id:'E1',label:"Young's modulus E₁",unit:'GPa',val:213},
+     {id:'E2',label:"Young's modulus E₂",unit:'GPa',val:213},
+     {id:'nu1',label:'Poisson\'s ratio ν₁',unit:'—',val:0.29},
+     {id:'nu2',label:'Poisson\'s ratio ν₂',unit:'—',val:0.29},
+     {id:'R1',label:'Radius R₁ (0 = flat)',unit:'mm',val:15},
+     {id:'R2',label:'Radius R₂ (0 = flat)',unit:'mm',val:0},
+     {id:'FL',label:'Contact load F/L',unit:'kN/m',val:1000},
+   ],
+   outputs:["Ep|Effective Young's modulus E'|GPa","Rp|Effective contact radius R'|mm",'b|Semi contact width b|mm','pm|Mean contact pressure p_m|GPa','pmax|Max contact pressure p_max|GPa'],
+   calc(v){
+     const Ep = 2/((1-v.nu1**2)/v.E1 + (1-v.nu2**2)/v.E2);
+     let inv_Rp = 0;
+     if(v.R1 > 0) inv_Rp += 1/v.R1;
+     if(v.R2 > 0) inv_Rp += 1/v.R2;
+     if(inv_Rp === 0) return {'Ep':'—','Rp':'—','b':'—','pm':'—','pmax':'—'};
+     const Rp = 1/inv_Rp;
+     const Ep_Pa = Ep*1e9, Rp_m = Rp*1e-3, Estar = Ep_Pa/2, FL = v.FL*1e3;
+     const b = Math.sqrt(4*FL*Rp_m/(Math.PI*Estar));
+     const pm = FL/(2*b);
+     const pmax = 2*FL/(Math.PI*b);
+     return {'Ep':Ep.toFixed(1),'Rp':Rp.toFixed(2),'b':(b*1e3).toFixed(2),'pm':(pm/1e9).toFixed(2),'pmax':(pmax/1e9).toFixed(2)};
+   },
+   formula:"2/E' = (1−ν₁²)/E₁ + (1−ν₂²)/E₂\n1/R' = 1/R₁ + 1/R₂ (one principal direction)\nb = √(4·F'·R' / π·E*) where E*=E'/2\np_m = F'/(2b)\np_max = 2F'/(πb) = (4/π)·p_m"
+  },
+
+  {id:'e2_6b', name:'Gear Contact Stress (AGMA)', cat:'Contact Mechanics', color:'var(--cat-contact)', icon:'⚙️',
+   desc:'Hertzian contact stress on gear teeth per AGMA standard.',
+   inputs:[
+     {id:'Wt',label:'Tangential load',unit:'N',val:2000},
+     {id:'dp',label:'Pitch diameter (pinion)',unit:'mm',val:80},
+     {id:'Fw',label:'Face width',unit:'mm',val:40},
+     {id:'E1',label:'E pinion',unit:'MPa',val:210000},
+     {id:'E2',label:'E gear',unit:'MPa',val:210000},
+     {id:'nu1',label:'ν pinion',unit:'—',val:0.30},
+     {id:'nu2',label:'ν gear',unit:'—',val:0.30},
+     {id:'Ko',label:'Overload factor Ko',unit:'—',val:1.0},
+     {id:'Kv',label:'Dynamic factor Kv',unit:'—',val:1.2},
+     {id:'Km',label:'Load distribution Km',unit:'—',val:1.3},
+     {id:'I',label:'Geometry factor I',unit:'—',val:0.11},
+   ],
+   outputs:['Cp|Elastic coefficient|√MPa','sc|Contact stress|MPa'],
+   calc(v){
+     const Cp = Math.sqrt(1/(Math.PI*((1-v.nu1**2)/v.E1+(1-v.nu2**2)/v.E2)));
+     const sc = Cp*Math.sqrt((v.Wt*v.Ko*v.Kv*v.Km)/(v.dp*v.Fw*v.I));
+     return {'Cp':Cp.toFixed(1),'sc':sc.toFixed(0)};
+   },
+   formula:'Cp = √(1 / π[(1−ν₁²)/E₁ + (1−ν₂²)/E₂])\nσc = Cp · √(Wt·Ko·Kv·Km / d·F·I)'
+  },
+
+  // ── ROLLING BEARINGS ──
+  {id:'L10', name:'Bearing Life (L10)', cat:'Rolling Bearings', color:'var(--cat-bearing-roll)', icon:'🔄',
+   desc:'Basic rating life per ISO 281. Matches werktuigbouw.nl/L10. Default: bearing 16004.',
+   inputs:[
+     {id:'C',label:'Dynamic load rating C',unit:'kN',val:7.28},
+     {id:'P',label:'Equivalent bearing load P',unit:'kN',val:1},
+     {id:'n',label:'Rotational speed',unit:'rpm',val:2800},
+     {id:'p',label:'Life exponent p',unit:'—',val:3, hint:'3 = ball, 10/3 = roller'},
+   ],
+   outputs:['L10|Basic rating life|×10⁶ rev','L10h|Rating life|hours','L10y|Rating life|years (8000h/yr)'],
+   calc(v){
+     const L10 = Math.pow(v.C/v.P, v.p);
+     const L10h = L10*1e6/(60*v.n);
+     return {'L10':L10.toFixed(0),'L10h':L10h.toFixed(0),'L10y':(L10h/8000).toFixed(1)};
+   },
+   formula:'L₁₀ = (C/P)^p  [×10⁶ rev]\nL₁₀h = L₁₀ · 10⁶ / (60·n)  [hours]'
+  },
+
+  {id:'pe', name:'Equivalent Bearing Load', cat:'Rolling Bearings', color:'var(--cat-bearing-roll)', icon:'🔄',
+   desc:'Equivalent static & dynamic bearing load for deep groove ball bearings.',
+   inputs:[
+     {id:'Fr',label:'Radial force Fr',unit:'N',val:3000},
+     {id:'Fa',label:'Axial force Fa',unit:'N',val:1000},
+     {id:'X',label:'Radial factor X',unit:'—',val:0.56},
+     {id:'Y',label:'Axial factor Y',unit:'—',val:1.0},
+   ],
+   outputs:['P|Dynamic equivalent load|N','P0|Static equivalent load|N'],
+   calc(v){
+     const P = v.X*v.Fr + v.Y*v.Fa;
+     let P0 = 0.6*v.Fr + 0.5*v.Fa;
+     if(P0 < v.Fr) P0 = v.Fr;
+     return {'P':Math.max(P,v.Fr).toFixed(0),'P0':P0.toFixed(0)};
+   },
+   formula:'P = X·Fr + Y·Fa  (if P < Fr → P = Fr)\nP₀ = max(0.6·Fr + 0.5·Fa, Fr)'
+  },
+
+  // ── SHAFT-HUB CONNECTIONS ──
+  {id:'e3_8', name:'Interference Fits', cat:'Shaft-Hub Connections', color:'var(--cat-shaft)', icon:'🔧',
+   desc:'Press/shrink/expansion fit calculator. Contact pressure, stresses, assembly force and torque capacity.',
+   inputs:[
+     {id:'di',label:'Shaft bore dᵢ (0 = solid)',unit:'mm',val:20},
+     {id:'d',label:'Interface diameter d',unit:'mm',val:23},
+     {id:'do_hub',label:'Hub outer diameter dₒ',unit:'mm',val:80},
+     {id:'Lc',label:'Contact length L',unit:'mm',val:20},
+     {id:'delta',label:'Diametral interference δ',unit:'mm',val:0.023},
+     {id:'E1',label:'E shaft (inner)',unit:'GPa',val:100, hint:'Bronze ≈ 100, Steel ≈ 210'},
+     {id:'E2',label:'E hub (outer)',unit:'GPa',val:210},
+     {id:'nu1',label:'ν shaft',unit:'—',val:0.30},
+     {id:'nu2',label:'ν hub',unit:'—',val:0.30},
+     {id:'mu',label:'Friction coefficient µ',unit:'—',val:0.12},
+   ],
+   outputs:['p|Contact pressure|MPa','st_hub|Tangential stress hub|MPa','st_shaft|Tangential stress shaft|MPa','F_assy|Assembly/removal force|kN','T_cap|Torque capacity|N·m'],
+   calc(v){
+     const d=v.d, D=v.do_hub, di=v.di;
+     const E1=v.E1*1000, E2=v.E2*1000; // GPa→MPa
+     const C1 = di===0 ? (1 - v.nu1) : ((d*d+di*di)/(d*d-di*di) - v.nu1);
+     const C2 = (D*D+d*d)/(D*D-d*d) + v.nu2;
+     const p = v.delta/(d*(C1/E1+C2/E2));
+     const st_hub = p*(D*D+d*d)/(D*D-d*d);
+     const st_shaft = di===0 ? -p : -p*(d*d+di*di)/(d*d-di*di);
+     const F = v.mu*p*Math.PI*d*v.Lc/1000;
+     const T = v.mu*p*Math.PI*d*v.Lc*(d/2)/1000;
+     return {'p':p.toFixed(2),'st_hub':st_hub.toFixed(2),'st_shaft':st_shaft.toFixed(2),'F_assy':F.toFixed(2),'T_cap':T.toFixed(2)};
+   },
+   formula:'C₁ = (d²+dᵢ²)/(d²−dᵢ²) − ν₁\nC₂ = (D²+d²)/(D²−d²) + ν₂\np = δ / [d·(C₁/E₁ + C₂/E₂)]\nσt,hub = p·(D²+d²)/(D²−d²)\nF = µ·p·π·d·L\nT = µ·p·π·d·L·d/2'
+  },
+
+  {id:'key', name:'Shaft Key Design', cat:'Shaft-Hub Connections', color:'var(--cat-shaft)', icon:'🔧',
+   desc:'Bearing pressure and shear stress in parallel key connections.',
+   inputs:[
+     {id:'T',label:'Torque',unit:'N·m',val:200},
+     {id:'d',label:'Shaft diameter',unit:'mm',val:30},
+     {id:'b',label:'Key width',unit:'mm',val:8},
+     {id:'h',label:'Key height',unit:'mm',val:7},
+     {id:'l',label:'Key length',unit:'mm',val:30},
+     {id:'Sy',label:'Yield strength (weakest part)',unit:'MPa',val:350},
+   ],
+   outputs:['sigma|Bearing pressure|MPa','tau|Shear stress in key|MPa','SF_bearing|Safety factor (bearing)|—','SF_shear|Safety factor (shear)|—'],
+   calc(v){
+     const Tnmm = v.T*1000;
+     const sigma = 2*Tnmm/(v.d*(v.h/2)*v.l);
+     const tau = 2*Tnmm/(v.d*v.b*v.l);
+     return {'sigma':sigma.toFixed(1),'tau':tau.toFixed(1),'SF_bearing':(v.Sy/sigma).toFixed(2),'SF_shear':(v.Sy*0.577/tau).toFixed(2)};
+   },
+   formula:'σ = 2T / (d · h/2 · l)  [bearing pressure]\nτ = 2T / (d · b · l)  [shear stress]\nSF = σ_yield / σ_actual'
+  },
+
+  {id:'c5_16', name:'Self-Locking Cone Fit', cat:'Shaft-Hub Connections', color:'var(--cat-shaft)', icon:'🔧',
+   desc:'Self-locking condition and torque capacity for taper cone shaft-hub connections.',
+   inputs:[
+     {id:'alpha',label:'Full taper angle α',unit:'°',val:6},
+     {id:'mu',label:'Friction coefficient µ',unit:'—',val:0.15},
+     {id:'d',label:'Mean contact diameter',unit:'mm',val:50},
+     {id:'L',label:'Contact length',unit:'mm',val:60},
+     {id:'p',label:'Contact pressure',unit:'MPa',val:80},
+   ],
+   outputs:['locking|Self-locking?|','SF_lock|Self-lock safety factor|—','T_cap|Torque capacity|N·m','F_axial|Axial assembly force|kN'],
+   calc(v){
+     const a_rad = v.alpha*Math.PI/360; // half-angle
+     const tanA = Math.tan(a_rad);
+     const locking = v.mu >= tanA;
+     const SF = v.mu/tanA;
+     const T = v.mu*v.p*Math.PI*(v.d/1000)*(v.L/1000)*(v.d/2000)*1e6;
+     const Fa = v.p*Math.PI*(v.d/1000)*(v.L/1000)*(Math.sin(a_rad)+v.mu*Math.cos(a_rad))/1000;
+     return {'locking':locking?'YES — self-locking':'NO — will slip','SF_lock':SF.toFixed(2),'T_cap':T.toFixed(1),'F_axial':Fa.toFixed(2)};
+   },
+   formula:'Self-locking when µ ≥ tan(α/2)\nT = µ·p·π·d·L·d/2\nFa = p·π·d·L·(sin α/2 + µ·cos α/2)'
+  },
+
+  // ── FASTENERS & BOLTS ──
+  {id:'e3_6a', name:'Bolt Tightening Torque (VDI 2230)', cat:'Fasteners & Bolts', color:'var(--cat-fastener)', icon:'🔩',
+   desc:'Tightening torque to preload a bolt with thread and head friction per VDI 2230. Matches werktuigbouw.nl/e3_6a.',
+   inputs:[
+     {id:'size',label:'Thread size',unit:'',val:'M12',type:'select',options:Object.keys(THREAD_DATA)},
+     {id:'cls',label:'Property class',unit:'',val:'8.8',type:'select',options:Object.keys(BOLT_CLASS)},
+     {id:'sigma_util',label:'Tensile stress σt',unit:'×Rp0.2',val:0.6, hint:'Fraction of yield for target preload'},
+     {id:'mu_th',label:'Thread friction µ_th',unit:'—',val:0.15},
+     {id:'mu_hd',label:'Head friction µ_hd',unit:'—',val:0.15},
+   ],
+   outputs:['At|Stress area|mm²','Rp|Yield strength|MPa','sigma_t|Tensile stress σt|MPa','tau|Torsional stress τ|MPa','sigma_e|Equivalent stress σe|MPa','MG|Thread friction torque|N·m','MWD|Head friction torque|N·m','MA|Total tightening torque|N·m','Fi|Initial preload|kN','F02|Load at yield|kN','Pb|Load reserve|kN'],
+   calc(v){
+     const t = THREAD_DATA[v.size];
+     const bc = BOLT_CLASS[v.cls];
+     const Rp = bc.Sp; const At = t.As;
+     const sigma_t = v.sigma_util * Rp;
+     const Fi = sigma_t * At / 1000;
+     const P = t.P; const d2 = t.d2; const d3 = t.d3; const d_nom = t.d;
+     const alpha_rad = Math.atan(P/(Math.PI*d2));
+     const rho_rad = Math.atan(v.mu_th/Math.cos(Math.PI/6));
+     const MG = Fi*1000*(d2/2)*Math.tan(alpha_rad+rho_rad)/1000;
+     const dw = 1.3*d_nom;
+     const MWD = Fi*1000*v.mu_hd*(dw/2)/1000;
+     const MA = MG + MWD;
+     const Wp = Math.PI*d3*d3*d3/16;
+     const tau = MG*1000/Wp;
+     const sigma_e = Math.sqrt(sigma_t*sigma_t + 3*tau*tau);
+     const F02 = Rp*At/1000;
+     const Pb = F02 - Fi;
+     return {'At':At.toFixed(2),'Rp':Rp.toFixed(0),'sigma_t':sigma_t.toFixed(2),'tau':tau.toFixed(2),'sigma_e':sigma_e.toFixed(2),'MG':MG.toFixed(2),'MWD':MWD.toFixed(2),'MA':MA.toFixed(2),'Fi':Fi.toFixed(2),'F02':F02.toFixed(2),'Pb':Pb.toFixed(2)};
+   },
+   formula:'σt = utilization × Rp0.2\nFi = σt · At\nMG = Fi·(d₂/2)·tan(α+ρ′)\nα = atan(P/πd₂), ρ′ = atan(µth/cos30°)\nMWD = Fi·µhd·dw/2 (dw≈1.3d)\nMA = MG + MWD\nτ = MG / Wp, Wp=πd₃³/16\nσe = √(σt²+3τ²)'
+  },
+
+  {id:'e3_6b', name:'Max Tightening Torque (VDI 2230)', cat:'Fasteners & Bolts', color:'var(--cat-fastener)', icon:'🔩',
+   desc:'Maximum tightening torque at bolt yield (σe = Rp0.2). Matches werktuigbouw.nl/e3_6b.',
+   inputs:[
+     {id:'size',label:'Thread size',unit:'',val:'M12',type:'select',options:Object.keys(THREAD_DATA)},
+     {id:'cls',label:'Property class',unit:'',val:'8.8',type:'select',options:Object.keys(BOLT_CLASS)},
+     {id:'sigma_util',label:'Max equiv. stress σe',unit:'×Rp0.2',val:0.9, hint:'Fraction of yield for σe limit'},
+     {id:'mu_th',label:'Thread friction µ_th',unit:'—',val:0.15},
+     {id:'mu_hd',label:'Head friction µ_hd',unit:'—',val:0.15},
+   ],
+   outputs:['At|Stress area|mm²','Rp|Yield strength|MPa','sigma_e|Equiv. stress σe|MPa','tau|Torsional stress τ|MPa','sigma_t|Tensile stress σt|MPa','MG|Thread friction torque|N·m','MWD|Head friction torque|N·m','MA|Total tightening torque|N·m','Fi|Initial preload|kN','relax|Stress relaxation|%','Pb|Load reserve|kN'],
+   calc(v){
+     const t = THREAD_DATA[v.size];
+     const bc = BOLT_CLASS[v.cls];
+     const Rp = bc.Sp; const At = t.As;
+     const sigma_e_target = v.sigma_util * Rp;
+     const P = t.P; const d2 = t.d2; const d3 = t.d3; const d_nom = t.d;
+     const alpha_rad = Math.atan(P/(Math.PI*d2));
+     const rho_rad = Math.atan(v.mu_th/Math.cos(Math.PI/6));
+     const Wp = Math.PI*d3*d3*d3/16;
+     const k = (d2/2)*Math.tan(alpha_rad+rho_rad)/(Wp/At);
+     const sigma_t = sigma_e_target/Math.sqrt(1+3*k*k);
+     const Fi = sigma_t*At/1000;
+     const tau = k*sigma_t;
+     const MG = Fi*1000*(d2/2)*Math.tan(alpha_rad+rho_rad)/1000;
+     const dw = 1.3*d_nom;
+     const MWD = Fi*1000*v.mu_hd*(dw/2)/1000;
+     const MA = MG + MWD;
+     const sigma_e_check = Math.sqrt(sigma_t*sigma_t+3*tau*tau);
+     const relax = (sigma_e_check-sigma_t)/sigma_e_check*100;
+     const F02 = Rp*At/1000;
+     const Pb = F02-Fi;
+     return {'At':At.toFixed(2),'Rp':Rp.toFixed(0),'sigma_e':sigma_e_check.toFixed(2),'tau':tau.toFixed(2),'sigma_t':sigma_t.toFixed(2),'MG':MG.toFixed(2),'MWD':MWD.toFixed(2),'MA':MA.toFixed(2),'Fi':Fi.toFixed(2),'relax':relax.toFixed(2),'Pb':Pb.toFixed(2)};
+   },
+   formula:'σe = util × Rp0.2\nσt = σe / √(1 + 3k²)\nk = (d₂/2)·tan(α+ρ′) / (Wp/At)\nFi = σt·At\nMG, MWD, MA as per e3_6a\nRelaxation = (σe−σt)/σe × 100%'
+  },
+
+  {id:'e3_6e', name:'Thread Stripping Strength', cat:'Fasteners & Bolts', color:'var(--cat-fastener)', icon:'🔩',
+   desc:'Thread stripping force for external and internal threads.',
+   inputs:[
+     {id:'size',label:'Thread size',unit:'',val:'M10',type:'select',options:Object.keys(THREAD_DATA)},
+     {id:'Le',label:'Engagement length',unit:'mm',val:15},
+     {id:'tau_bolt',label:'Shear strength bolt',unit:'MPa',val:460, hint:'≈ 0.577 × Su'},
+     {id:'tau_nut',label:'Shear strength nut',unit:'MPa',val:460},
+   ],
+   outputs:['ASs|Ext. thread shear area|mm²','ASn|Int. thread shear area|mm²','Fss|Ext. stripping force|kN','Fsn|Int. stripping force|kN'],
+   calc(v){
+     const t = THREAD_DATA[v.size];
+     const ASs = 0.5*Math.PI*t.d2*v.Le;
+     const ASn = 0.5*Math.PI*t.d*v.Le;
+     return {'ASs':ASs.toFixed(1),'ASn':ASn.toFixed(1),'Fss':(ASs*v.tau_bolt/1000).toFixed(1),'Fsn':(ASn*v.tau_nut/1000).toFixed(1)};
+   },
+   formula:'ASs ≈ 0.5·π·d₂·Le (ext. thread)\nASn ≈ 0.5·π·d·Le (int. thread)\nF_strip = AS · τ_shear'
+  },
+
+  {id:'unf_1', name:'Max Tensile Load (Bolt)', cat:'Fasteners & Bolts', color:'var(--cat-fastener)', icon:'🔩',
+   desc:'Maximum tensile load of a bolt based on property class.',
+   inputs:[
+     {id:'size',label:'Thread size',unit:'',val:'M10',type:'select',options:Object.keys(THREAD_DATA)},
+     {id:'cls',label:'Property class',unit:'',val:'8.8',type:'select',options:Object.keys(BOLT_CLASS)},
+   ],
+   outputs:['As|Stress area|mm²','Fp|Proof load|kN','Fu|Ultimate load|kN'],
+   calc(v){
+     const t = THREAD_DATA[v.size];
+     const bc = BOLT_CLASS[v.cls];
+     return {'As':t.As.toFixed(1),'Fp':(bc.Sp*t.As/1000).toFixed(1),'Fu':(bc.Su*t.As/1000).toFixed(1)};
+   },
+   formula:'Fp = Sp · As\nFu = Su · As'
+  },
+
+  {id:'metric_iso', name:'Metric ISO Thread Table', cat:'Fasteners & Bolts', color:'var(--cat-fastener)', icon:'🔩',
+   desc:'Reference table for metric ISO thread dimensions per ISO 724 / DIN 13.',
+   inputs:[],
+   outputs:[],
+   calc(){ return {}; },
+   customRender(){
+     let h = '<table class="ref-table"><tr><th>Size</th><th>Pitch P (mm)</th><th>Pitch ⌀ d₂ (mm)</th><th>Minor ⌀ d₃ (mm)</th><th>Stress area As (mm²)</th></tr>';
+     for(const[k,v] of Object.entries(THREAD_DATA)){
+       h+=`<tr><td><b>${k}</b></td><td>${v.P}</td><td>${v.d2}</td><td>${v.d3}</td><td>${v.As}</td></tr>`;
+     }
+     h+='</table>';
+     return h;
+   },
+   formula:'d₂ = d − 0.6495·P\nd₃ = d − 1.2269·P\nAs = π/4 · [(d₂+d₃)/2]²'
+  },
+
+  // ── FATIGUE STRENGTH ──
+  {id:'f_2', name:'Drive Shaft Fatigue (Bending)', cat:'Fatigue Strength', color:'var(--cat-fatigue)', icon:'📉',
+   desc:'Modified endurance limit for a rotating shaft in bending using Marin correction factors.',
+   inputs:[
+     {id:'Sut',label:'Ultimate tensile strength',unit:'MPa',val:600},
+     {id:'d',label:'Shaft diameter',unit:'mm',val:30},
+     {id:'finish',label:'Surface finish',unit:'',val:'Machined',type:'select',options:Object.keys(SURFACE_FINISH)},
+     {id:'rel',label:'Reliability',unit:'%',val:'99',type:'select',options:Object.keys(RELIABILITY)},
+     {id:'Kt',label:'Stress concentration Kt',unit:'—',val:1.5},
+     {id:'q',label:'Notch sensitivity q',unit:'—',val:0.85, hint:'0 to 1'},
+   ],
+   outputs:['Se_prime|Base endurance limit|MPa','ka|Surface factor ka|—','kb|Size factor kb|—','Cr|Reliability factor Cr|—','Kf|Fatigue notch factor Kf|—','Se|Modified endurance limit|MPa'],
+   calc(v){
+     const Se_prime = 0.5*v.Sut;
+     const sf = SURFACE_FINISH[v.finish];
+     const ka = sf.a*Math.pow(v.Sut,sf.b);
+     let kb = 1.0;
+     if(v.d>=2.79&&v.d<=51) kb=1.24*Math.pow(v.d,-0.107);
+     else if(v.d>51&&v.d<=254) kb=1.51*Math.pow(v.d,-0.157);
+     const Cr = RELIABILITY[v.rel]||1.0;
+     const Kf = 1+(v.Kt-1)*v.q;
+     const Se = ka*kb*Cr*Se_prime/Kf;
+     return {'Se_prime':Se_prime.toFixed(0),'ka':ka.toFixed(3),'kb':kb.toFixed(3),'Cr':Cr.toFixed(3),'Kf':Kf.toFixed(3),'Se':Se.toFixed(0)};
+   },
+   formula:"Se' = 0.5·Sut\nka = a·Sut^b (surface)\nkb = 1.24·d^(−0.107) (size, d≤51mm)\nKf = 1+(Kt−1)·q\nSe = ka·kb·Cr·Se'/Kf"
+  },
+
+  {id:'p1_6', name:'Reliability Factor Table', cat:'Fatigue Strength', color:'var(--cat-fatigue)', icon:'📉',
+   desc:'Reliability correction factor Cr for fatigue strength calculations.',
+   inputs:[],
+   outputs:[],
+   calc(){ return {}; },
+   customRender(){
+     let h = '<table class="ref-table"><tr><th>Reliability (%)</th><th>Factor Cr</th><th>Standard normal variate Za</th></tr>';
+     const za = {50:0,90:1.288,95:1.645,99:2.326,99.9:3.091,99.99:3.719};
+     for(const[k,v] of Object.entries(RELIABILITY)){
+       h+=`<tr><td>${k}%</td><td><b>${v}</b></td><td>${za[k]||'—'}</td></tr>`;
+     }
+     h+='</table>';
+     return h;
+   },
+   formula:'Cr = 1 − 0.08·Za\nwhere Za = standard normal variate'
+  },
+
+  // ── FLUID FLOW & LUBRICATION ──
+  {id:'pipeflow', name:'Pipe Flow Pressure Drop', cat:'Fluid Flow & Lubrication', color:'var(--cat-fluid)', icon:'🌊',
+   desc:'Darcy-Weisbach pressure drop with Swamee-Jain friction factor. Laminar and turbulent flow.',
+   inputs:[
+     {id:'D',label:'Pipe inner diameter',unit:'mm',val:25},
+     {id:'L_pipe',label:'Pipe length',unit:'m',val:50},
+     {id:'Q',label:'Flow rate',unit:'L/min',val:30},
+     {id:'rho',label:'Fluid density',unit:'kg/m³',val:1000},
+     {id:'mu_f',label:'Dynamic viscosity',unit:'Pa·s',val:0.001},
+     {id:'eps',label:'Roughness ε',unit:'mm',val:0.045, hint:'Steel ≈ 0.045, PVC ≈ 0.0015'},
+   ],
+   outputs:['v|Flow velocity|m/s','Re|Reynolds number|—','regime|Flow regime|','f|Friction factor|—','dP|Pressure drop|bar','dP_Pa|Pressure drop|Pa'],
+   calc(v){
+     const D_m = v.D/1000;
+     const A = Math.PI*D_m*D_m/4;
+     const Q_m3s = v.Q/60000;
+     const vel = Q_m3s/A;
+     const Re = v.rho*vel*D_m/v.mu_f;
+     let f, regime;
+     if(Re<2300){
+       f = 64/Re;
+       regime = 'Laminar';
+     } else {
+       const e_D = (v.eps/1000)/D_m;
+       const arg = e_D/3.7 + 5.74/Math.pow(Re,0.9);
+       f = 0.25/Math.pow(Math.log10(arg),2);
+       regime = Re<4000?'Transitional':'Turbulent';
+     }
+     const dP = f*(v.L_pipe/D_m)*(v.rho*vel*vel/2);
+     return {'v':vel.toFixed(3),'Re':Re.toFixed(0),'regime':regime,'f':f.toFixed(6),'dP':(dP/1e5).toFixed(4),'dP_Pa':dP.toFixed(0)};
+   },
+   formula:'v = Q / A\nRe = ρvD/µ\nLaminar (Re<2300): f = 64/Re\nTurbulent: f = 0.25/[log₁₀(ε/3.7D + 5.74/Re⁰·⁹)]²\nΔP = f·(L/D)·(ρv²/2)'
+  },
+
+  {id:'pipeflow_air', name:'Compressed Air Pipe Flow', cat:'Fluid Flow & Lubrication', color:'var(--cat-fluid)', icon:'🌊',
+   desc:'Pressure drop in compressed air lines using ideal gas law for density.',
+   inputs:[
+     {id:'P_bar',label:'Inlet pressure (gauge)',unit:'bar',val:6},
+     {id:'T_C',label:'Air temperature',unit:'°C',val:20},
+     {id:'D',label:'Pipe inner diameter',unit:'mm',val:25},
+     {id:'L_pipe',label:'Pipe length',unit:'m',val:50},
+     {id:'Q_nl',label:'Flow rate (free air)',unit:'NL/min',val:500},
+     {id:'eps',label:'Roughness ε',unit:'mm',val:0.045},
+   ],
+   outputs:['rho|Air density at pressure|kg/m³','v|Flow velocity|m/s','Re|Reynolds number|—','dP|Pressure drop|bar'],
+   calc(v){
+     const P_abs = (v.P_bar+1.013)*1e5;
+     const T_K = v.T_C+273.15;
+     const rho = P_abs/(287*T_K);
+     const Q_actual = (v.Q_nl/60000)*(1.013e5/P_abs)*(T_K/293.15);
+     const D_m = v.D/1000;
+     const A = Math.PI*D_m*D_m/4;
+     const vel = Q_actual/A;
+     const mu_air = 1.81e-5;
+     const Re = rho*vel*D_m/mu_air;
+     let f;
+     if(Re<2300) f=64/Re;
+     else { const arg=(v.eps/1000)/(3.7*D_m)+5.74/Math.pow(Re,0.9); f=0.25/Math.pow(Math.log10(arg),2); }
+     const dP = f*(v.L_pipe/D_m)*(rho*vel*vel/2);
+     return {'rho':rho.toFixed(2),'v':vel.toFixed(2),'Re':Re.toFixed(0),'dP':(dP/1e5).toFixed(4)};
+   },
+   formula:'ρ = P_abs / (R·T) [R=287 J/kg·K]\nQ_actual = Q_NL · (P_atm/P_abs) · (T/T_ref)\nΔP = f·(L/D)·ρv²/2'
+  },
+
+  {id:'barus', name:'Pressure-Viscosity (Barus/Roelands)', cat:'Fluid Flow & Lubrication', color:'var(--cat-fluid)', icon:'🌊',
+   desc:'Oil viscosity under pressure. Barus (exponential) and Roelands (power-law) models for EHL calculations.',
+   inputs:[
+     {id:'eta0',label:'Base viscosity η₀',unit:'Pa·s',val:0.04},
+     {id:'p_visc',label:'Pressure',unit:'MPa',val:500},
+     {id:'alpha_pv',label:'Pressure-visc. coeff. α',unit:'GPa⁻¹',val:22},
+     {id:'Z',label:'Roelands index Z',unit:'—',val:0.68},
+   ],
+   outputs:['eta_barus|Viscosity (Barus)|Pa·s','eta_roelands|Viscosity (Roelands)|Pa·s','ratio_b|Viscosity increase (Barus)|×','ratio_r|Viscosity increase (Roelands)|×'],
+   calc(v){
+     const alpha_Pa = v.alpha_pv*1e-9;
+     const p_Pa = v.p_visc*1e6;
+     const eta_b = v.eta0*Math.exp(alpha_Pa*p_Pa);
+     const p0_roel = 1.98e8;
+     const lnEta0 = Math.log(v.eta0);
+     const eta_r = v.eta0*Math.exp((lnEta0+9.67)*(-1+Math.pow(1+p_Pa/p0_roel,v.Z)));
+     return {'eta_barus':eta_b.toExponential(3),'eta_roelands':eta_r.toExponential(3),'ratio_b':(eta_b/v.eta0).toExponential(2),'ratio_r':(eta_r/v.eta0).toExponential(2)};
+   },
+   formula:'Barus:   η = η₀ · exp(α·p)\nRoelands: η = η₀ · exp[(ln η₀ + 9.67)·(−1 + (1+p/p₀)^Z)]\n  p₀ = 198 MPa'
+  },
+
+  // ── DYNAMICS ──
+  {id:'damping', name:'Viscous Damping', cat:'Dynamics & Vibration', color:'var(--cat-dynamics)', icon:'〰️',
+   desc:'Viscous damping force and annular gap damping coefficient.',
+   inputs:[
+     {id:'mu_d',label:'Dynamic viscosity µ',unit:'Pa·s',val:0.05},
+     {id:'D_d',label:'Piston/shaft diameter',unit:'mm',val:40},
+     {id:'h_gap',label:'Radial gap',unit:'mm',val:0.5},
+     {id:'L_d',label:'Bearing/piston length',unit:'mm',val:50},
+     {id:'eps_d',label:'Eccentricity ratio ε',unit:'—',val:0, hint:'0=concentric, <1'},
+     {id:'vel',label:'Velocity',unit:'m/s',val:0.1},
+   ],
+   outputs:['c|Damping coefficient|N·s/m','F_damp|Damping force|N','P_diss|Power dissipated|W'],
+   calc(v){
+     const D=v.D_d/1000, h=v.h_gap/1000, L=v.L_d/1000;
+     const eccFactor = Math.pow(1-v.eps_d*v.eps_d, 1.5);
+     const c = Math.PI*v.mu_d*D*D*D*L/(4*h*h*h*eccFactor);
+     const F = c*v.vel;
+     const P = c*v.vel*v.vel;
+     return {'c':c.toFixed(1),'F_damp':F.toFixed(2),'P_diss':P.toFixed(3)};
+   },
+   formula:'c = π·µ·D³·L / [4·h³·(1−ε²)^(3/2)]\nF = c·v\nP = c·v²'
+  },
+
+  // ── POWER TRANSMISSION ──
+  {id:'t14_shaft', name:'Drive Shaft Design', cat:'Power Transmission', color:'var(--cat-power)', icon:'⚡',
+   desc:'Shaft diameter from transmitted power. Torque, bending, and combined loading (von Mises).',
+   inputs:[
+     {id:'Pw',label:'Power',unit:'kW',val:15},
+     {id:'n_rpm',label:'Speed',unit:'rpm',val:1500},
+     {id:'M_b',label:'Bending moment',unit:'N·m',val:150},
+     {id:'tau_allow',label:'Allowable shear stress',unit:'MPa',val:55},
+   ],
+   outputs:['T|Torque|N·m','d_torsion|Min ⌀ (torsion only)|mm','sigma_eq|Equiv. stress (von Mises)|MPa','d_combined|Min ⌀ (combined)|mm'],
+   calc(v){
+     const T = v.Pw*1000*60/(2*Math.PI*v.n_rpm);
+     const d_t = Math.pow(16*T*1000/(Math.PI*v.tau_allow),1/3);
+     const d_c = Math.pow(16/(Math.PI*v.tau_allow)*Math.sqrt(v.M_b*v.M_b*1e6+0.75*T*T*1e6),1/3);
+     const sigma_eq = v.tau_allow; // at design point
+     return {'T':T.toFixed(1),'d_torsion':d_t.toFixed(1),'sigma_eq':sigma_eq.toFixed(0),'d_combined':d_c.toFixed(1)};
+   },
+   formula:'T = P·60 / (2π·n)  [P in W, T in N·m]\nd = ∛(16T / πτ_allow)  [torsion only]\nd = ∛(16/πτ · √(M² + ¾T²))  [combined]'
+  },
+
+  {id:'t14_bending', name:'Shaft Bending Stress', cat:'Power Transmission', color:'var(--cat-power)', icon:'⚡',
+   desc:'Bending stress in a circular shaft / axle.',
+   inputs:[
+     {id:'M_bend',label:'Bending moment',unit:'N·m',val:500},
+     {id:'d_shaft',label:'Shaft diameter',unit:'mm',val:40},
+     {id:'Sy_shaft',label:'Yield strength',unit:'MPa',val:350},
+   ],
+   outputs:['sigma_b|Bending stress|MPa','SF|Safety factor|—','I|Moment of inertia|mm⁴'],
+   calc(v){
+     const d=v.d_shaft;
+     const I = Math.PI*Math.pow(d,4)/64;
+     const sigma = 32*v.M_bend*1000/(Math.PI*Math.pow(d,3));
+     return {'sigma_b':sigma.toFixed(1),'SF':(v.Sy_shaft/sigma).toFixed(2),'I':I.toFixed(0)};
+   },
+   formula:'σb = 32M / (π·d³)\nI = π·d⁴ / 64\nSF = σ_yield / σb'
+  },
+
+  {id:'spring', name:'Helical Spring Design', cat:'Power Transmission', color:'var(--cat-power)', icon:'⚡',
+   desc:'Round wire helical compression/tension spring calculator.',
+   inputs:[
+     {id:'dw',label:'Wire diameter',unit:'mm',val:3},
+     {id:'Dm',label:'Mean coil diameter',unit:'mm',val:20},
+     {id:'na',label:'Active coils',unit:'—',val:8},
+     {id:'F_spring',label:'Applied force',unit:'N',val:100},
+     {id:'G',label:'Shear modulus G',unit:'MPa',val:81500, hint:'Steel ≈ 81500'},
+   ],
+   outputs:['C|Spring index C|—','k|Spring rate|N/mm','delta_s|Deflection|mm','tau_s|Shear stress (Wahl)|MPa','Kw|Wahl correction factor|—'],
+   calc(v){
+     const C = v.Dm/v.dw;
+     const Kw = (4*C-1)/(4*C-4)+0.615/C;
+     const k = v.G*Math.pow(v.dw,4)/(8*Math.pow(v.Dm,3)*v.na);
+     const delta = v.F_spring/k;
+     const tau = Kw*8*v.F_spring*v.Dm/(Math.PI*Math.pow(v.dw,3));
+     return {'C':C.toFixed(2),'k':k.toFixed(2),'delta_s':delta.toFixed(2),'tau_s':tau.toFixed(0),'Kw':Kw.toFixed(3)};
+   },
+   formula:'C = D/d (spring index)\nKw = (4C−1)/(4C−4) + 0.615/C\nk = G·d⁴ / (8·D³·na)\nτ = Kw · 8FD / (π·d³)'
+  },
+
+  // ── MATERIAL PROPERTIES ──
+  {id:'uts', name:'Material Properties Reference', cat:'Material Properties', color:'var(--cat-material)', icon:'📊',
+   desc:'Mechanical properties of common engineering metals and alloys.',
+   inputs:[],
+   outputs:[],
+   calc(){ return {}; },
+   customRender(){
+     const data = [
+       ['Steel C45 (1045)','210','0.30','580','340','190'],
+       ['Steel 42CrMo4 (4140)','210','0.30','1000','750','310'],
+       ['Steel 100Cr6 (52100)','210','0.30','2000','1700','—'],
+       ['Stainless 304','193','0.29','520','210','180'],
+       ['Stainless 316','193','0.30','560','240','190'],
+       ['Cast Iron GG25','100–150','0.25','250','—','100'],
+       ['Aluminum 6061-T6','69','0.33','310','275','95'],
+       ['Aluminum 7075-T6','72','0.33','570','500','160'],
+       ['Titanium Ti-6Al-4V','114','0.34','950','880','—'],
+       ['Brass CuZn37','100','0.34','420','250','150'],
+       ['Bronze CuSn8','110','0.34','400','200','160'],
+       ['Copper Cu-ETP','120','0.34','220','70','65'],
+     ];
+     let h = '<table class="ref-table"><tr><th>Material</th><th>E (GPa)</th><th>ν</th><th>Su (MPa)</th><th>Sy (MPa)</th><th>Se (MPa)</th></tr>';
+     data.forEach(r=>{h+=`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`;});
+     h+='</table><p style="margin-top:10px;font-size:.78rem;color:#94a3b8;">E = Young\'s modulus, ν = Poisson\'s ratio, Su = ultimate tensile, Sy = yield, Se ≈ endurance limit (rotating bending)</p>';
+     return h;
+   },
+   formula:'Se ≈ 0.5·Su for Su ≤ 1400 MPa (steels)\nG = E / (2·(1+ν))'
+  },
+];
+
+// ═══════════════════════════════════════════════
+// GROUP BY CATEGORY
+// ═══════════════════════════════════════════════
+const categories = [];
+const catMap = {};
+CALCS.forEach(c => {
+  if (!catMap[c.cat]) { catMap[c.cat] = { name:c.cat, color:c.color, icon:c.icon, items:[] }; categories.push(catMap[c.cat]); }
+  catMap[c.cat].items.push(c);
+});
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let activeCalc = null;
+let sidebarOpen = window.innerWidth > 768;
+
+// ═══════════════════════════════════════════════
+// BUILD SIDEBAR NAV
+// ═══════════════════════════════════════════════
+function buildNav(filter='') {
+  const nav = document.getElementById('navList');
+  nav.innerHTML = '';
+  const lf = filter.toLowerCase();
+  categories.forEach(cat => {
+    const items = cat.items.filter(c => !lf || c.name.toLowerCase().includes(lf) || c.id.toLowerCase().includes(lf) || c.desc.toLowerCase().includes(lf));
+    if (!items.length) return;
+    const group = document.createElement('div');
+    group.className = 'cat-group';
+    const header = document.createElement('div');
+    header.className = 'cat-header';
+    header.innerHTML = `<span class="cat-dot" style="background:${cat.color}"></span><span class="cat-label">${cat.name}</span><svg class="cat-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+    header.addEventListener('click', () => header.classList.toggle('collapsed'));
+    group.appendChild(header);
+    const list = document.createElement('div');
+    list.className = 'cat-items';
+    items.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'nav-item' + (activeCalc === c.id ? ' active' : '');
+      item.dataset.id = c.id;
+      item.innerHTML = `<span class="nav-code">${c.id}</span><span class="nav-label">${c.name}</span>`;
+      item.addEventListener('click', () => showCalc(c.id));
+      list.appendChild(item);
+    });
+    group.appendChild(list);
+    nav.appendChild(group);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// BUILD CALCULATOR PANEL HTML
+// ═══════════════════════════════════════════════
+function buildCalcPanel(c) {
+  const panel = document.createElement('div');
+  panel.className = 'calc-panel';
+  panel.id = 'panel-' + c.id;
+  let html = `<div class="calc-title">${c.name}</div><div class="calc-desc">${c.desc}</div>`;
+
+  // Custom render (reference tables)
+  if (c.customRender) {
+    html += `<div class="calc-section">${c.customRender()}</div>`;
+  }
+
+  // Inputs
+  if (c.inputs && c.inputs.length) {
+    html += `<div class="calc-section"><h3><span class="dot input-dot"></span>Inputs</h3><div class="field-grid">`;
+    c.inputs.forEach(inp => {
+      if (inp.type === 'select') {
+        html += `<div class="field"><label>${inp.label} <span class="unit">${inp.unit}</span></label><select id="${c.id}_${inp.id}" data-calc="${c.id}">`;
+        inp.options.forEach(o => { html += `<option value="${o}" ${o==inp.val?'selected':''}>${o}</option>`; });
+        html += `</select></div>`;
+      } else {
+        html += `<div class="field"><label>${inp.label} <span class="unit">${inp.unit}</span></label><input type="number" id="${c.id}_${inp.id}" value="${inp.val}" step="any" data-calc="${c.id}"></div>`;
+      }
+    });
+    html += `</div><button class="calc-btn" data-calc="${c.id}">Calculate</button></div>`;
+  }
+
+  // Outputs
+  if (c.outputs && c.outputs.length) {
+    html += `<div class="calc-section"><h3><span class="dot output-dot"></span>Results</h3><div class="field-grid">`;
+    c.outputs.forEach(o => {
+      const [id,label,unit] = o.split('|');
+      html += `<div class="field"><label>${label} <span class="unit">${unit}</span></label><input type="text" id="${c.id}_out_${id}" readonly value="—"></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Formula
+  if (c.formula) {
+    html += `<div class="calc-section"><h3><span class="dot formula-dot"></span>Formulas</h3><div class="formula-box">${c.formula}</div></div>`;
+  }
+
+  panel.innerHTML = html;
+  return panel;
+}
+
+// ═══════════════════════════════════════════════
+// RUN CALCULATOR
+// ═══════════════════════════════════════════════
+function runCalc(id) {
+  const c = CALCS.find(x => x.id === id);
+  if (!c || !c.inputs || !c.inputs.length) return;
+  const vals = {};
+  c.inputs.forEach(inp => {
+    const el = document.getElementById(c.id + '_' + inp.id);
+    vals[inp.id] = inp.type === 'select' ? el.value : parseFloat(el.value);
+  });
+  try {
+    const results = c.calc(vals);
+    c.outputs.forEach(o => {
+      const outId = o.split('|')[0];
+      const el = document.getElementById(c.id + '_out_' + outId);
+      if (el) { el.value = results[outId] ?? '—'; el.classList.remove('warn'); }
+    });
+  } catch(e) {
+    console.error('Calc error:', e);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SHOW CALCULATOR
+// ═══════════════════════════════════════════════
+function showCalc(id) {
+  const c = CALCS.find(x => x.id === id);
+  if (!c) return;
+  activeCalc = id;
+  history.replaceState(null, '', '#' + id);
+  document.getElementById('headerTitle').textContent = c.name;
+  document.getElementById('headerSub').textContent = c.cat + ' · ' + c.id;
+  document.getElementById('welcome').classList.add('hidden');
+
+  // Hide all panels
+  document.querySelectorAll('.calc-panel').forEach(p => p.classList.remove('active'));
+
+  // Show or create panel
+  let panel = document.getElementById('panel-' + id);
+  if (!panel) {
+    panel = buildCalcPanel(c);
+    document.getElementById('calcContainer').appendChild(panel);
+
+    // Wire up events
+    panel.querySelectorAll('input[data-calc], select[data-calc]').forEach(el => {
+      el.addEventListener('input', () => runCalc(id));
+      el.addEventListener('change', () => runCalc(id));
+    });
+    panel.querySelectorAll('button[data-calc]').forEach(btn => {
+      btn.addEventListener('click', () => runCalc(id));
+    });
+
+    // Auto-calculate on open
+    setTimeout(() => runCalc(id), 50);
+  }
+  panel.classList.add('active');
+
+  // Update nav highlight
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+
+  // Scroll main to top
+  document.getElementById('main').scrollTop = 0;
+
+  // Close sidebar on mobile
+  if (window.innerWidth <= 768) closeSidebar();
+}
+
+// ═══════════════════════════════════════════════
+// SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════
+function openSidebar() {
+  sidebarOpen = true;
+  document.getElementById('sidebar').classList.remove('collapsed');
+  if (window.innerWidth <= 768) { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show'); }
+  document.getElementById('main').classList.remove('expanded');
+}
+function closeSidebar() {
+  sidebarOpen = false;
+  if (window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+  else { document.getElementById('sidebar').classList.add('collapsed'); document.getElementById('main').classList.add('expanded'); }
+}
+function toggleSidebar() { sidebarOpen ? closeSidebar() : openSidebar(); }
+document.getElementById('menuBtn').addEventListener('click', toggleSidebar);
+document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+// ═══════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════
+document.getElementById('searchInput').addEventListener('input', e => buildNav(e.target.value));
+
+// ═══════════════════════════════════════════════
+// QUICK GRID
+// ═══════════════════════════════════════════════
+const quickPicks = ['e2_1','L10','e3_6a','e3_8','f_2','pipeflow','key','uts'];
+const grid = document.getElementById('quickGrid');
+quickPicks.forEach(id => {
+  const c = CALCS.find(x => x.id === id);
+  if (!c) return;
+  const card = document.createElement('div');
+  card.className = 'quick-card';
+  card.innerHTML = `<div class="qc-icon">${c.icon}</div><div class="qc-label">${c.name}</div>`;
+  card.addEventListener('click', () => showCalc(id));
+  grid.appendChild(card);
+});
+
+// ═══════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); openSidebar(); }
+  if (e.key === 'Escape') { document.getElementById('searchInput').blur(); if (window.innerWidth <= 768) closeSidebar(); }
+});
+
+// ═══════════════════════════════════════════════
+// PWA INSTALL
+// ═══════════════════════════════════════════════
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt=e; document.getElementById('installBanner').classList.add('show'); });
+document.getElementById('installBtn').addEventListener('click', async()=>{ if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBanner').classList.remove('show');} });
+document.getElementById('installDismiss').addEventListener('click', ()=>document.getElementById('installBanner').classList.remove('show'));
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+buildNav();
+
+function handleHash() {
+  const hash = location.hash.replace('#','');
+  if (hash && CALCS.find(c => c.id === hash)) showCalc(hash);
+}
+window.addEventListener('hashchange', handleHash);
+handleHash();
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+    if (sidebarOpen) { document.getElementById('sidebar').classList.remove('collapsed'); document.getElementById('main').classList.remove('expanded'); }
+  }
+});
+</script>
+</body>
+</html>

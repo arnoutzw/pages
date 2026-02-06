@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a365d"/>
+      <stop offset="100%" style="stop-color:#2c5282"/>
+    </linearGradient>
+  </defs>
+  <!-- Full bleed background for maskable -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- Gear (centered in safe zone: 80% = 410px area, center offset) -->
+  <g transform="translate(256,230)" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0-80 L12-78 16-68 28-70 36-61 44-66 54-52 46-45 52-34 62-34 64-19 72-14 68 0 76 8 66 21 70 30 58 38 58 48 43 50 35 59 24 54 14 66 5 58 -5 58 -14 66 -24 54 -35 59 -43 50 -58 48 -58 38 -70 30 -66 21 -76 8 -68 0 -72-14 -64-19 -62-34 -52-34 -46-45 -54-52 -44-66 -36-61 -28-70 -16-68 -12-78Z" fill="rgba(255,255,255,0.12)" stroke="#fff" stroke-width="9"/>
+    <circle r="30" fill="#1a365d" stroke="#fff" stroke-width="9"/>
+    <circle r="6" fill="#60a5fa"/>
+  </g>
+  <text x="256" y="380" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="Georgia, serif" font-size="64" font-style="italic">EC</text>
+</svg>

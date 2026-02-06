@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a365d"/>
+      <stop offset="100%" style="stop-color:#2c5282"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Gear outer -->
+  <g transform="translate(256,240)" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Gear teeth (simplified 8-tooth) -->
+    <path d="M0-100 L15-98 20-85 35-88 45-76 55-82 68-65 58-56 65-42 78-42 80-24 90-18 85 0 95 10 82 26 88 38 72 48 72 60 54 62 44 74 30 68 18 82 6 72 -6 82 -18 82 -30 68 -44 74 -54 62 -72 60 -72 48 -88 38 -82 26 -95 10 -85 0 -90-18 -80-24 -78-42 -65-42 -58-56 -68-65 -55-82 -45-76 -35-88 -20-85 -15-98Z" fill="rgba(255,255,255,0.12)" stroke="#fff" stroke-width="10"/>
+    <!-- Inner circle -->
+    <circle r="38" fill="#1a365d" stroke="#fff" stroke-width="10"/>
+    <!-- Center dot -->
+    <circle r="8" fill="#60a5fa"/>
+  </g>
+  <!-- Calculator/sigma symbol -->
+  <text x="256" y="420" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="Georgia, serif" font-size="80" font-style="italic">EC</text>
+</svg>
