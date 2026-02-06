@@ -1092,7 +1092,7 @@ function duplicateEl(id) {
 
 // ----- Barcode Generation -----
 function generateBarcodeImg(type, data, wMM, hMM, showText) {
-  if (!data) return null;
+  if (!data) { console.warn('generateBarcodeImg: no data provided'); return null; }
   try {
     if (type === 'QR') {
       const qr = qrcode(0, 'M');
@@ -1798,24 +1798,35 @@ function importInventoryItem(itemId) {
   S.elements.push(nameEl);
 
   // Add 12NC as CODE128 barcode below the text
-  if (item.nc) {
-    const ncClean = item.nc.replace(/\s+/g, '');
+  const ncRaw = item.nc || '';
+  const ncClean = String(ncRaw).replace(/\s+/g, '');
+  if (ncClean) {
     const bw = Math.min(S.canvas.width - 2, 28);
     const bh = 10;
-    const imgData = generateBarcodeImg('CODE128', ncClean, bw, bh, true);
-    if (imgData) {
-      const bcEl = {
-        id: uid(), type: 'barcode',
-        x: Math.max(0, (S.canvas.width - bw) / 2),
-        y: 7,
-        width: bw, height: bh,
-        barcodeType: 'CODE128',
-        data: ncClean,
-        showText: true,
-        imageData: imgData,
-      };
-      S.elements.push(bcEl);
+    try {
+      const imgData = generateBarcodeImg('CODE128', ncClean, bw, bh, true);
+      if (imgData) {
+        const bcEl = {
+          id: uid(), type: 'barcode',
+          x: Math.max(0, (S.canvas.width - bw) / 2),
+          y: 7,
+          width: bw, height: bh,
+          barcodeType: 'CODE128',
+          data: ncClean,
+          showText: true,
+          imageData: imgData,
+        };
+        S.elements.push(bcEl);
+      } else {
+        console.error('Barcode generation returned null for 12NC:', ncClean);
+        alert('Could not generate barcode for 12NC: ' + ncClean + '\nThe item name was added without a barcode.');
+      }
+    } catch (e) {
+      console.error('Barcode generation error for 12NC:', ncClean, e);
+      alert('Barcode error: ' + e.message + '\n12NC: ' + ncClean);
     }
+  } else {
+    console.warn('Imported item has no 12NC code:', item.name);
   }
 
   S.activeTool = 'select';
