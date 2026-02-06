@@ -156,7 +156,7 @@
     // ============================================
     // BUILD INFO - AUTO-UPDATED BY PRE-COMMIT HOOK
     // ============================================
-    const BUILD_COMMIT = '5ac68101b1922c02708a281d879074b1e2d73d01';
+    const BUILD_COMMIT = '7b48e67c244adf48ab609e19b88092a80b9df859';
     const BUILD_DATE = '2026-02-06';
     // ============================================
 
@@ -381,6 +381,29 @@
       const [loading, setLoading] = useState(true);
       const [docsLoading, setDocsLoading] = useState(true);
       const [sidebarOpen, setSidebarOpen] = useState(true);
+      const [expandedFolders, setExpandedFolders] = useState({});
+
+      const toggleFolder = (folderPath) => {
+        setExpandedFolders(prev => ({ ...prev, [folderPath]: !prev[folderPath] }));
+      };
+
+      // Build a nested tree from flat file paths
+      const buildTree = (paths) => {
+        const root = { name: '', children: {}, files: [] };
+        paths.forEach(path => {
+          const parts = path.split('/');
+          let current = root;
+          for (let i = 0; i < parts.length - 1; i++) {
+            const folderName = parts[i];
+            if (!current.children[folderName]) {
+              current.children[folderName] = { name: folderName, children: {}, files: [] };
+            }
+            current = current.children[folderName];
+          }
+          current.files.push({ name: parts[parts.length - 1], path });
+        });
+        return root;
+      };
 
       // Fetch list of markdown files in the repo
       useEffect(() => {
@@ -404,6 +427,15 @@
                 });
               setDocs(mdFiles.length > 0 ? mdFiles : ['README.md']);
               if (mdFiles.length > 0) setSelectedDoc(mdFiles[0]);
+              // Auto-expand all folders that contain files
+              const folders = {};
+              mdFiles.forEach(p => {
+                const parts = p.split('/');
+                for (let i = 1; i < parts.length; i++) {
+                  folders[parts.slice(0, i).join('/')] = true;
+                }
+              });
+              setExpandedFolders(folders);
             } else {
               setDocs(['README.md']);
             }
@@ -450,10 +482,6 @@
       }, [onClose]);
 
       const getFileName = (path) => path.split('/').pop();
-      const getFolder = (path) => {
-        const parts = path.split('/');
-        return parts.length > 1 ? parts.slice(0, -1).join('/') : '';
-      };
 
       return (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
@@ -506,26 +534,47 @@
                     <div className="p-4 text-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-amber-500 mx-auto"></div>
                     </div>
-                  ) : (
-                    <div className="py-2">
-                      {docs.map(doc => (
-                        <button key={doc}
-                                onClick={() => setSelectedDoc(doc)}
-                                className={`w-full text-left px-3 py-2 text-sm font-mono transition-colors flex items-center gap-2
-                                          ${selectedDoc === doc
-                                            ? 'bg-amber-500/20 text-amber-400 border-r-2 border-amber-500'
-                                            : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}`}>
-                          <Icon name="FileText" size={14} className={selectedDoc === doc ? 'text-amber-500' : 'text-zinc-600'} />
-                          <div className="truncate">
-                            {getFolder(doc) && (
-                              <span className="text-zinc-600 text-xs">{getFolder(doc)}/</span>
-                            )}
-                            <span>{getFileName(doc)}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  ) : (() => {
+                    const tree = buildTree(docs);
+                    const renderNode = (node, path, depth) => {
+                      const folderEntries = Object.keys(node.children).sort();
+                      const pl = `${0.75 + depth * 0.75}rem`;
+                      return (
+                        <React.Fragment key={path || 'root'}>
+                          {folderEntries.map(name => {
+                            const folderPath = path ? `${path}/${name}` : name;
+                            const isExpanded = expandedFolders[folderPath];
+                            return (
+                              <React.Fragment key={folderPath}>
+                                <button onClick={() => toggleFolder(folderPath)}
+                                        className="w-full text-left py-1.5 text-sm font-mono transition-colors flex items-center gap-1.5
+                                                 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                                        style={{ paddingLeft: pl }}>
+                                  <Icon name={isExpanded ? 'ChevronDown' : 'ChevronRight'} size={12} className="text-zinc-600 shrink-0" />
+                                  <Icon name={isExpanded ? 'FolderOpen' : 'Folder'} size={14} className="text-amber-500/70 shrink-0" />
+                                  <span className="truncate">{name}</span>
+                                </button>
+                                {isExpanded && renderNode(node.children[name], folderPath, depth + 1)}
+                              </React.Fragment>
+                            );
+                          })}
+                          {node.files.map(file => (
+                            <button key={file.path}
+                                    onClick={() => setSelectedDoc(file.path)}
+                                    className={`w-full text-left py-1.5 text-sm font-mono transition-colors flex items-center gap-1.5
+                                              ${selectedDoc === file.path
+                                                ? 'bg-amber-500/20 text-amber-400 border-r-2 border-amber-500'
+                                                : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}`}
+                                    style={{ paddingLeft: `${0.75 + (depth + 0.5) * 0.75}rem` }}>
+                              <Icon name="FileText" size={14} className={selectedDoc === file.path ? 'text-amber-500 shrink-0' : 'text-zinc-600 shrink-0'} />
+                              <span className="truncate">{file.name}</span>
+                            </button>
+                          ))}
+                        </React.Fragment>
+                      );
+                    };
+                    return <div className="py-1">{renderNode(tree, '', 0)}</div>;
+                  })()}
                 </div>
               </div>
 
