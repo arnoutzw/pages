@@ -5,10 +5,10 @@
   <!-- Nav bar -->
   <rect y="0" width="960" height="48" fill="#09090b"/>
   <rect y="48" width="960" height="1" fill="#3f3f46"/>
-  <text x="20" y="30" fill="#f59e0b" font-size="15" font-weight="700">Discrete Filter Designer</text>
+  <text x="20" y="30" fill="#f59e0b" font-size="15" font-weight="700">Digital Filter Designer</text>
 
   <!-- Left panel -->
-  <rect x="16" y="60" width="300" height="464" rx="8" fill="#18181b" stroke="#3f3f46"/>
+  <rect x="16" y="60" width="300" height="472" rx="8" fill="#18181b" stroke="#3f3f46"/>
   <text x="32" y="88" fill="#fbbf24" font-size="11" font-weight="600">Filter Parameters</text>
 
   <!-- Filter Type -->
@@ -60,6 +60,19 @@
   <rect x="32" y="454" width="130" height="28" rx="6" fill="#27272a" stroke="#3f3f46"/>
   <text x="42" y="472" fill="#71717a" font-size="9" font-weight="600">a2</text>
   <text x="120" y="472" fill="#f59e0b" font-size="9" text-anchor="end">0.412802</text>
+
+  <!-- Transfer Function H(z) -->
+  <rect x="32" y="490" width="268" height="1" fill="#27272a"/>
+  <text x="32" y="508" fill="#fbbf24" font-size="10" font-weight="600">Transfer Function H(z)</text>
+  <rect x="32" y="512" width="268" height="36" rx="6" fill="#27272a" stroke="#3f3f46"/>
+  <text x="44" y="527" fill="#f59e0b" font-size="9" font-weight="600">H(z)</text>
+  <text x="74" y="527" fill="#e4e4e7" font-size="9">=</text>
+  <!-- Numerator -->
+  <text x="92" y="525" fill="#e4e4e7" font-size="8">0.0675 + 0.1349<tspan fill="#fbbf24">z</tspan><tspan baseline-shift="super" font-size="6">⁻¹</tspan> + 0.0675<tspan fill="#fbbf24">z</tspan><tspan baseline-shift="super" font-size="6">⁻²</tspan></text>
+  <!-- Fraction bar -->
+  <line x1="88" y1="530" x2="292" y2="530" stroke="#a1a1aa" stroke-width="1"/>
+  <!-- Denominator -->
+  <text x="92" y="543" fill="#e4e4e7" font-size="8">1 − 1.1430<tspan fill="#fbbf24">z</tspan><tspan baseline-shift="super" font-size="6">⁻¹</tspan> + 0.4128<tspan fill="#fbbf24">z</tspan><tspan baseline-shift="super" font-size="6">⁻²</tspan></text>
 
   <!-- Right panel -->
   <rect x="328" y="60" width="616" height="464" rx="8" fill="#18181b" stroke="#3f3f46"/>

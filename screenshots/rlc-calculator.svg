@@ -5,7 +5,7 @@
   <!-- Nav bar -->
   <rect y="0" width="960" height="48" fill="#09090b"/>
   <rect y="48" width="960" height="1" fill="#3f3f46"/>
-  <text x="20" y="30" fill="#f59e0b" font-size="15" font-weight="700">RLC Circuit Calculator</text>
+  <text x="20" y="30" fill="#f59e0b" font-size="15" font-weight="700">Analog Filter Designer</text>
 
   <!-- Nav tabs -->
   <rect x="620" y="10" width="90" height="28" rx="6" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)"/>
@@ -110,45 +110,57 @@
   <text x="488" y="256" fill="#71717a" font-size="8" font-weight="600">DAMPING TYPE</text>
   <text x="488" y="276" fill="#f59e0b" font-size="12">Overdamped</text>
 
-  <!-- Plot section -->
+  <!-- Transfer Function H(s) -->
   <rect x="324" y="300" width="604" height="1" fill="#3f3f46"/>
-  <text x="324" y="324" fill="#fbbf24" font-size="11" font-weight="600">Frequency Response</text>
+  <text x="324" y="322" fill="#fbbf24" font-size="11" font-weight="600">Transfer Function H(s)</text>
+  <rect x="324" y="330" width="604" height="36" rx="6" fill="#27272a" stroke="#3f3f46"/>
+  <text x="340" y="353" fill="#f59e0b" font-size="11" font-weight="600">H(s)</text>
+  <text x="374" y="353" fill="#e4e4e7" font-size="11">=</text>
+  <!-- Numerator -->
+  <text x="436" y="345" fill="#e4e4e7" font-size="10">1.000×10⁶</text>
+  <!-- Fraction bar -->
+  <line x1="395" y1="350" x2="720" y2="350" stroke="#a1a1aa" stroke-width="1"/>
+  <!-- Denominator -->
+  <text x="398" y="363" fill="#e4e4e7" font-size="10"><tspan fill="#fbbf24">s</tspan><tspan baseline-shift="super" font-size="7">2</tspan> + 1.000×10⁶<tspan fill="#fbbf24">s</tspan> + 1.000×10⁶</text>
+
+  <!-- Plot section -->
+  <rect x="324" y="376" width="604" height="1" fill="#3f3f46"/>
+  <text x="324" y="398" fill="#fbbf24" font-size="11" font-weight="600">Frequency Response</text>
 
   <!-- Plot tabs -->
-  <rect x="324" y="334" width="100" height="24" rx="6" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)"/>
-  <text x="336" y="350" fill="#f59e0b" font-size="9" font-weight="500">Magnitude (dB)</text>
-  <rect x="432" y="334" width="80" height="24" rx="6" fill="none" stroke="#3f3f46"/>
-  <text x="444" y="350" fill="#a1a1aa" font-size="9" font-weight="500">Phase (deg)</text>
-  <rect x="520" y="334" width="94" height="24" rx="6" fill="none" stroke="#3f3f46"/>
-  <text x="532" y="350" fill="#a1a1aa" font-size="9" font-weight="500">Step Response</text>
+  <rect x="324" y="406" width="100" height="24" rx="6" fill="rgba(245,158,11,0.15)" stroke="rgba(245,158,11,0.4)"/>
+  <text x="336" y="422" fill="#f59e0b" font-size="9" font-weight="500">Magnitude (dB)</text>
+  <rect x="432" y="406" width="80" height="24" rx="6" fill="none" stroke="#3f3f46"/>
+  <text x="444" y="422" fill="#a1a1aa" font-size="9" font-weight="500">Phase (deg)</text>
+  <rect x="520" y="406" width="94" height="24" rx="6" fill="none" stroke="#3f3f46"/>
+  <text x="532" y="422" fill="#a1a1aa" font-size="9" font-weight="500">Step Response</text>
 
   <!-- Plot area -->
-  <rect x="324" y="366" width="604" height="146" rx="6" fill="#18181b" stroke="#3f3f46"/>
+  <rect x="324" y="436" width="604" height="82" rx="6" fill="#18181b" stroke="#3f3f46"/>
 
   <!-- Grid lines -->
-  <line x1="380" y1="376" x2="380" y2="502" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
-  <line x1="480" y1="376" x2="480" y2="502" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
-  <line x1="580" y1="376" x2="580" y2="502" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
-  <line x1="680" y1="376" x2="680" y2="502" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
-  <line x1="780" y1="376" x2="780" y2="502" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
-  <line x1="380" y1="410" x2="912" y2="410" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
-  <line x1="380" y1="445" x2="912" y2="445" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
-  <line x1="380" y1="480" x2="912" y2="480" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
+  <line x1="380" y1="442" x2="380" y2="512" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
+  <line x1="480" y1="442" x2="480" y2="512" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
+  <line x1="580" y1="442" x2="580" y2="512" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
+  <line x1="680" y1="442" x2="680" y2="512" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
+  <line x1="780" y1="442" x2="780" y2="512" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
+  <line x1="380" y1="465" x2="912" y2="465" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
+  <line x1="380" y1="490" x2="912" y2="490" stroke="rgba(63,63,70,0.5)" stroke-width="1"/>
 
   <!-- Magnitude plot curve (low-pass shape) -->
   <polyline fill="none" stroke="#f59e0b" stroke-width="2"
-    points="380,400 430,400 480,400 530,400 560,400 580,402 600,410 620,430 640,460 660,480 700,492 750,496 800,498 850,500 912,502"/>
+    points="380,455 430,455 480,455 530,455 560,456 580,460 600,470 620,485 640,498 660,505 700,510 750,512 800,513 850,514 912,514"/>
 
   <!-- Axis labels -->
-  <text x="380" y="500" fill="#71717a" font-size="8">10Hz</text>
-  <text x="480" y="500" fill="#71717a" font-size="8">100Hz</text>
-  <text x="580" y="500" fill="#71717a" font-size="8">1kHz</text>
-  <text x="680" y="500" fill="#71717a" font-size="8">10kHz</text>
-  <text x="780" y="500" fill="#71717a" font-size="8">100kHz</text>
-  <text x="340" y="404" fill="#71717a" font-size="8">0dB</text>
-  <text x="336" y="445" fill="#71717a" font-size="8">-20</text>
-  <text x="336" y="480" fill="#71717a" font-size="8">-40</text>
+  <text x="380" y="510" fill="#71717a" font-size="7">10Hz</text>
+  <text x="480" y="510" fill="#71717a" font-size="7">100Hz</text>
+  <text x="580" y="510" fill="#71717a" font-size="7">1kHz</text>
+  <text x="680" y="510" fill="#71717a" font-size="7">10kHz</text>
+  <text x="780" y="510" fill="#71717a" font-size="7">100kHz</text>
+  <text x="345" y="459" fill="#71717a" font-size="7">0dB</text>
+  <text x="345" y="480" fill="#71717a" font-size="7">-20</text>
+  <text x="345" y="500" fill="#71717a" font-size="7">-40</text>
 
   <!-- -3dB dashed line -->
-  <line x1="380" y1="408" x2="912" y2="408" stroke="rgba(245,158,11,0.3)" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="380" y1="461" x2="912" y2="461" stroke="rgba(245,158,11,0.3)" stroke-width="1" stroke-dasharray="5,5"/>
 </svg>

@@ -87,29 +87,31 @@ Upload and view STL, 3MF, AMF, OBJ, and G-code files in the browser.
 - **Rename & delete** from library or viewer
 - Auto-scaled grid floor and camera fitting
 
-### RLC Circuit Calculator
+### Analog Filter Designer
 
-Series, parallel, and filter analysis for RLC circuits.
+Continuous-time analog filter design and RLC circuit analysis.
 
-![RLC Calculator](screenshots/rlc-calculator.svg)
+![Analog Filter Designer](screenshots/rlc-calculator.svg)
 
 - **Three modes** — Series RLC, Parallel RLC, and Filters (LP/HP/BP/BS in RC, RL, RLC variants)
 - **Circuit parameters** — Resistance, Inductance, Capacitance with unit selectors and sliders
 - **Input voltage** and **frequency** controls
+- **Transfer function H(s)** — Laplace-domain display with symbolic numerator/denominator polynomials
 - **Analysis results** — Impedance (magnitude + phase), resonant frequency, Q factor, bandwidth, damping ratio, damping type, component voltages/currents
 - **Four plots** — Magnitude (dB), Phase (degrees), Step Response, Impulse Response
 - **Circuit diagram** — SVG schematic updates per mode
 - Engineering notation throughout (e.g. 5.033kHz, 1.000kΩ)
 
-### Discrete Filter Designer
+### Digital Filter Designer
 
 An interactive biquad IIR filter designer with real-time frequency response.
 
-![Filter Designer](screenshots/filter-designer.svg)
+![Digital Filter Designer](screenshots/filter-designer.svg)
 
 - **Eight filter types** — Low-Pass, High-Pass, Band-Pass, Notch, Peaking EQ, Low Shelf, High Shelf, All-Pass
 - **Parameters** — Sample rate (1–384kHz), cutoff/center frequency (log-mapped slider), Q factor (log-mapped), gain (dB, for peaking/shelf types)
 - **Coefficient display** — Normalized Direct Form I biquad coefficients (b0, b1, b2, a1, a2)
+- **Transfer function H(z)** — Z-domain display with coefficients in z⁻¹/z⁻² form
 - **Four plot views** — Magnitude (dB), Phase, Group Delay (ms), Impulse Response (stem plot)
 - **Pole-zero diagram** — Unit circle with zero markers (circles) and pole markers (crosses)
 - **C code generation** — Ready-to-use `Biquad` struct with `biquad_init`/`biquad_process` functions
@@ -133,8 +135,8 @@ Two third-party simulators are embedded as fullscreen tabs:
 | Resistor Colors | Vanilla JS (CIE LAB color space) |
 | Datasheet Search | Vanilla JS, localStorage |
 | 3D Model Library | Three.js (r160), IndexedDB |
-| RLC Calculator | Vanilla JS, Canvas API, SVG circuit diagrams |
-| Filter Designer | Vanilla JS, Canvas API (Audio EQ Cookbook biquad formulas) |
+| Analog Filter Designer | Vanilla JS, Canvas API, SVG circuit diagrams |
+| Digital Filter Designer | Vanilla JS, Canvas API (Audio EQ Cookbook biquad formulas) |
 
 All local apps are self-contained single HTML files with inline CSS/JS. Lab Inventory and Label Designer include PWA manifests and service workers for offline support.
 
@@ -172,7 +174,7 @@ pages/
 ├── model-library/
 │   └── index.html                 # 3D model viewer/library
 ├── rlc-calculator/
-│   └── rlc-calculator.html        # RLC circuit analysis tool
+│   └── rlc-calculator.html        # Analog filter designer
 └── biquad-pwa/
-    └── index.html                 # Discrete biquad filter designer
+    └── index.html                 # Digital filter designer
 ```
