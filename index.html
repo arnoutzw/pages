@@ -150,6 +150,13 @@
     };
     // ============================================
 
+    // ============================================
+    // BUILD INFO - AUTO-UPDATED BY PRE-COMMIT HOOK
+    // ============================================
+    const BUILD_COMMIT = '35ebc6d77e39709bda39c3741b6a3d48c19f4a42';
+    const BUILD_DATE = '2026-02-06';
+    // ============================================
+
     // Lucide icons
     const icons = lucide;
 
@@ -933,10 +940,27 @@
 
           {/* Footer */}
           <footer className="border-t border-zinc-800 bg-zinc-900/50 py-8 mt-12">
-            <div className="max-w-7xl mx-auto px-4 text-center">
+            <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
               <p className="font-mono text-sm text-zinc-600">
                 <span className="text-amber-500/50">/*</span> Built with React • Powered by GitHub API <span className="text-amber-500/50">*/</span>
               </p>
+              <div className="flex items-center justify-center gap-3 font-mono text-xs text-zinc-700">
+                {BUILD_COMMIT !== 'dev' && (
+                  <>
+                    <a href={`https://github.com/${username}/pages/commit/${BUILD_COMMIT}`}
+                       target="_blank" rel="noopener noreferrer"
+                       className="flex items-center gap-1 hover:text-zinc-500 transition-colors">
+                      <Icon name="GitCommitHorizontal" size={12} />
+                      <span>{BUILD_COMMIT.slice(0, 7)}</span>
+                    </a>
+                    <span className="text-zinc-800">•</span>
+                  </>
+                )}
+                <span className="flex items-center gap-1">
+                  <Icon name="Calendar" size={12} />
+                  <span>{BUILD_DATE !== 'dev' ? BUILD_DATE : 'development'}</span>
+                </span>
+              </div>
             </div>
           </footer>
 
