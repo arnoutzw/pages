@@ -413,6 +413,72 @@
             color: #fbbf24;
         }
 
+        .tf-input-group {
+            margin-bottom: 1rem;
+        }
+
+        .tf-input-group label {
+            display: block;
+            margin-bottom: 0.375rem;
+        }
+
+        .tf-input-group input[type="text"] {
+            width: 100%;
+            padding: 0.5rem 0.625rem;
+            background: #27272a;
+            border: 1px solid #3f3f46;
+            color: #e4e4e7;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            border-radius: 0.375rem;
+        }
+
+        .tf-input-group input[type="text"]:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+        }
+
+        .tf-input-group .tf-hint {
+            font-size: 0.7rem;
+            color: #71717a;
+            margin-top: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tf-apply-btn {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tf-apply-btn:hover {
+            background: rgba(245, 158, 11, 0.25);
+        }
+
+        .tf-result-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #a1a1aa;
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+            background: #27272a;
+            border-radius: 0.375rem;
+            border: 1px solid #3f3f46;
+        }
+
+        .tf-result-text .val {
+            color: #f59e0b;
+        }
+
         .info-text {
             font-size: 0.8rem;
             color: #71717a;
@@ -441,12 +507,29 @@
                 <button class="tab-button active" data-config="series">Series RLC</button>
                 <button class="tab-button" data-config="parallel">Parallel RLC</button>
                 <button class="tab-button" data-config="filters">Filters</button>
+                <button class="tab-button" data-config="tf-input">H(s) Input</button>
             </div>
         </div>
 
         <div class="main-content">
             <div class="left-panel section">
-                <h3 class="section-title">Circuit Parameters</h3>
+                <h3 class="section-title" id="leftPanelTitle">Circuit Parameters</h3>
+
+                <!-- H(s) Transfer Function Input (hidden by default) -->
+                <div id="tfInputPanel" style="display: none;">
+                    <div class="tf-input-group">
+                        <label>Numerator coefficients</label>
+                        <input type="text" id="tfNumInput" placeholder="e.g. 1e6" value="1e6">
+                        <div class="tf-hint">Highest power first: a₂s² + a₁s + a₀</div>
+                    </div>
+                    <div class="tf-input-group">
+                        <label>Denominator coefficients</label>
+                        <input type="text" id="tfDenInput" placeholder="e.g. 1 1000 1e6" value="1 1000 1e6">
+                        <div class="tf-hint">Highest power first: b₂s² + b₁s + b₀</div>
+                    </div>
+                    <button class="tf-apply-btn" onclick="applyTransferFunction()">Apply H(s)</button>
+                    <div id="tfInputResult" class="tf-result-text" style="display: none;"></div>
+                </div>
 
                 <!-- Filter Type Selector -->
                 <div id="filterTypeGroup" class="input-group" style="display: none;">
@@ -1316,6 +1399,8 @@
         let currentPlotType = 'magnitude';
 
         function updateCircuitDisplay() {
+            if (currentConfig === 'tf-input') return; // Handled by applyTransferFunction
+
             const R = parseInputValue('resistance', 'resistanceUnit');
             const L = parseInputValue('inductance', 'inductanceUnit');
             const C = parseInputValue('capacitance', 'capacitanceUnit');
@@ -1482,6 +1567,7 @@
         }
 
         function updateTransferFunction(R, L, C) {
+            if (currentConfig === 'tf-input') return; // Handled by applyTransferFunction
             const el = document.getElementById('tfDisplay');
             let num, den;
 
@@ -1558,6 +1644,148 @@
                 `<span class="tf-den">${denHtml}</span></span>`;
         }
 
+        // Custom transfer function from user input (for H(s) Input mode)
+        class CustomTransferFunction {
+            constructor(numCoeffs, denCoeffs) {
+                // coefficients: highest power first
+                this.numCoeffs = numCoeffs;
+                this.denCoeffs = denCoeffs;
+            }
+
+            evaluate(s) {
+                function evalPoly(coeffs, s) {
+                    let result = new Complex(0, 0);
+                    const order = coeffs.length - 1;
+                    for (let i = 0; i < coeffs.length; i++) {
+                        const power = order - i;
+                        let sPow = new Complex(1, 0);
+                        for (let p = 0; p < power; p++) sPow = sPow.mul(s);
+                        result = result.add(sPow.mul(new Complex(coeffs[i], 0)));
+                    }
+                    return result;
+                }
+                return evalPoly(this.numCoeffs, s).div(evalPoly(this.denCoeffs, s));
+            }
+        }
+
+        function parseCoefficients(str) {
+            return str.trim().split(/[\s,]+/).map(s => {
+                const v = parseFloat(s);
+                if (isNaN(v)) throw new Error(`Invalid coefficient: "${s}"`);
+                return v;
+            });
+        }
+
+        function applyTransferFunction() {
+            const resultEl = document.getElementById('tfInputResult');
+            try {
+                const numCoeffs = parseCoefficients(document.getElementById('tfNumInput').value);
+                const denCoeffs = parseCoefficients(document.getElementById('tfDenInput').value);
+
+                if (numCoeffs.length === 0 || denCoeffs.length === 0) throw new Error('Empty coefficients');
+
+                const customTf = new CustomTransferFunction(numCoeffs, denCoeffs);
+
+                // Build polynomial display
+                const numPoly = numCoeffs.map((c, i) => ({ power: numCoeffs.length - 1 - i, value: c }));
+                const denPoly = denCoeffs.map((c, i) => ({ power: denCoeffs.length - 1 - i, value: c }));
+                const numHtml = buildPolyHtml(numPoly, 's');
+                const denHtml = buildPolyHtml(denPoly, 's');
+
+                document.getElementById('tfDisplay').innerHTML =
+                    `<span class="tf-label">H(s)</span> = ` +
+                    `<span class="tf-frac"><span class="tf-num">${numHtml}</span>` +
+                    `<span class="tf-bar"></span>` +
+                    `<span class="tf-den">${denHtml}</span></span>`;
+
+                // Derive RLC values from denominator for plotting
+                let R, L, C, derivedInfo;
+                const denOrder = denCoeffs.length - 1;
+
+                if (denOrder === 2) {
+                    // s² + (R/L)s + 1/(LC) → normalize to monic
+                    const a2 = denCoeffs[0], a1 = denCoeffs[1], a0 = denCoeffs[2];
+                    const wn2 = a0 / a2;
+                    const twoZetaWn = a1 / a2;
+                    const wn = Math.sqrt(wn2);
+                    const Q = wn / twoZetaWn;
+                    // Choose L = 1H, then C = 1/(wn²·L), R = wn·L/Q
+                    L = 1;
+                    C = 1 / (wn2 * L);
+                    R = wn * L / Q;
+                    derivedInfo = `ωn = ${formatEngineering(wn, 'rad/s')}, Q = ${Q.toPrecision(4)}, f₀ = ${formatEngineering(wn / (2 * Math.PI), 'Hz')}`;
+                } else if (denOrder === 1) {
+                    // s + ωc → first order
+                    const b1 = denCoeffs[0], b0 = denCoeffs[1];
+                    const wc = b0 / b1;
+                    // RC filter: R=1kΩ, C=1/(wc·R)
+                    R = 1000;
+                    C = 1 / (wc * R);
+                    L = 0.001;
+                    derivedInfo = `ωc = ${formatEngineering(wc, 'rad/s')}, fc = ${formatEngineering(wc / (2 * Math.PI), 'Hz')}`;
+                } else {
+                    R = 1000; L = 0.001; C = 1e-6;
+                    derivedInfo = `Order ${denOrder} — using generic RLC for time-domain plots`;
+                }
+
+                // Show result
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = `<div style="margin-bottom:0.25rem;">${derivedInfo}</div>` +
+                    `<div>R = <span class="val">${formatEngineering(R, 'Ω')}</span>, ` +
+                    `L = <span class="val">${formatEngineering(L, 'H')}</span>, ` +
+                    `C = <span class="val">${formatEngineering(C, 'F')}</span></div>`;
+
+                // Update component inputs to match
+                document.getElementById('resistance').value = R;
+                document.getElementById('resistanceUnit').value = '1';
+                document.getElementById('inductance').value = L;
+                document.getElementById('inductanceUnit').value = '1';
+                document.getElementById('capacitance').value = C;
+                document.getElementById('capacitanceUnit').value = '1';
+
+                // Update results grid
+                const grid = document.getElementById('resultsGrid');
+                grid.innerHTML = '';
+                const circuit = new RLCCircuit(R, L, C, 1, 1000);
+                const f0 = circuit.resonantFrequency();
+                const Qs = circuit.QFactorSeries();
+                const BW = circuit.bandwidth();
+                const zeta = circuit.dampingRatioSeries();
+                [
+                    { label: 'Order', value: denOrder.toString() },
+                    { label: 'Resonant Freq', value: formatEngineering(f0, 'Hz') },
+                    { label: 'Q Factor', value: Math.abs(Qs).toFixed(3) },
+                    { label: 'Bandwidth', value: formatEngineering(BW, 'Hz') },
+                    { label: 'Damping Ratio (ζ)', value: zeta.toFixed(3) },
+                    { label: 'Damping Type', value: circuit.dampingType() },
+                ].forEach(r => {
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `<div class="result-label">${r.label}</div><div class="result-value">${r.value}</div>`;
+                    grid.appendChild(div);
+                });
+
+                // Draw circuit diagram
+                drawCircuitDiagram('filters', R, L, C);
+
+                // Plot using the custom transfer function directly
+                const plotter = new BodePlotter('plotCanvas');
+                if (currentPlotType === 'magnitude') {
+                    plotter.drawMagnitudePlot(customTf);
+                } else if (currentPlotType === 'phase') {
+                    plotter.drawPhasePlot(customTf);
+                } else if (currentPlotType === 'step') {
+                    plotter.drawStepResponse(circuit);
+                } else if (currentPlotType === 'impulse') {
+                    plotter.drawImpulseResponse(circuit);
+                }
+
+            } catch (e) {
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = `<span style="color:#ef4444;">${e.message}</span>`;
+            }
+        }
+
         function updatePlots(R, L, C, Vin, f) {
             const circuit = new RLCCircuit(R, L, C, Vin, f);
             const plotter = new BodePlotter('plotCanvas');
@@ -1601,11 +1829,20 @@
                 btn.classList.add('active');
                 currentConfig = btn.dataset.config;
 
-                // Show/hide filter type selector
+                const isTf = currentConfig === 'tf-input';
+                // Show/hide panels
+                document.getElementById('tfInputPanel').style.display = isTf ? 'block' : 'none';
                 document.getElementById('filterTypeGroup').style.display =
                     currentConfig === 'filters' ? 'block' : 'none';
+                document.getElementById('leftPanelTitle').textContent =
+                    isTf ? 'H(s) Transfer Function' : 'Circuit Parameters';
 
-                updateCircuitDisplay();
+                // Show/hide circuit parameter inputs
+                document.querySelectorAll('.input-group').forEach(g => {
+                    g.style.display = isTf ? 'none' : '';
+                });
+
+                if (!isTf) updateCircuitDisplay();
             });
         });
 
