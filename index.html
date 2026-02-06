@@ -156,7 +156,7 @@
     // ============================================
     // BUILD INFO - AUTO-UPDATED BY PRE-COMMIT HOOK
     // ============================================
-    const BUILD_COMMIT = '7b48e67c244adf48ab609e19b88092a80b9df859';
+    const BUILD_COMMIT = 'b977f60af72e87199465d3b6e3e3dec28c1d287e';
     const BUILD_DATE = '2026-02-06';
     // ============================================
 
@@ -427,15 +427,6 @@
                 });
               setDocs(mdFiles.length > 0 ? mdFiles : ['README.md']);
               if (mdFiles.length > 0) setSelectedDoc(mdFiles[0]);
-              // Auto-expand all folders that contain files
-              const folders = {};
-              mdFiles.forEach(p => {
-                const parts = p.split('/');
-                for (let i = 1; i < parts.length; i++) {
-                  folders[parts.slice(0, i).join('/')] = true;
-                }
-              });
-              setExpandedFolders(folders);
             } else {
               setDocs(['README.md']);
             }
