@@ -474,6 +474,57 @@ body {
 .modal-cancel:hover { background: var(--bg-3); }
 .modal-confirm { background: var(--accent); color: #fff; }
 .modal-confirm:hover { background: var(--accent-h); }
+
+/* === INVENTORY MODAL === */
+.inv-search {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-0);
+  border: 1px solid var(--border-l);
+  border-radius: var(--radius);
+  color: var(--tx-1);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.inv-search:focus { border-color: var(--accent); outline: none; }
+.inv-search::placeholder { color: var(--tx-3); }
+.inv-list {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border-l);
+  border-radius: var(--radius);
+  background: var(--bg-0);
+}
+.inv-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-l);
+  transition: background .1s;
+}
+.inv-item:last-child { border-bottom: none; }
+.inv-item:hover { background: var(--bg-2); }
+.inv-item-name {
+  font-size: 13px;
+  color: var(--tx-1);
+  font-weight: 500;
+}
+.inv-item-nc {
+  font-size: 11px;
+  color: var(--tx-3);
+  font-family: monospace;
+  margin-top: 2px;
+}
+.inv-item-meta {
+  font-size: 10px;
+  color: var(--tx-3);
+  margin-top: 1px;
+}
+.inv-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--tx-3);
+  font-size: 12px;
+}
 </style>
 </head>
 <body>
@@ -520,6 +571,14 @@ body {
     </svg>
     Export PNG
   </button>
+  <button class="btn-primary" id="btn-print" style="background:#059669">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.5 5V1.5h7V5"/>
+      <rect x="1" y="5" width="12" height="5" rx="1"/>
+      <path d="M3.5 8.5h7v4h-7z"/>
+    </svg>
+    Print Label
+  </button>
 </header>
 
 <!-- WORKSPACE -->
@@ -557,6 +616,10 @@ body {
       </button>
     </div>
     <div class="sb-section">
+      <div class="sb-title">Inventory</div>
+      <button class="tool-btn" id="btn-inv-import">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" opacity=".8"><rect x="2" y="1" width="12" height="3" rx="1"/><rect x="2" y="6" width="12" height="3" rx="1"/><rect x="2" y="11" width="12" height="3" rx="1"/><circle cx="13" cy="13" r="3" fill="var(--accent)"/><path d="M12 13h2M13 12v2" stroke="var(--bg-0)" stroke-width="1.2"/></svg>
+        Import Item
       <div class="sb-title">Shapes</div>
       <button class="tool-btn" data-tool="shape-rect">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/></svg>
@@ -638,6 +701,23 @@ body {
     <div class="modal-actions">
       <button class="modal-cancel" id="bc-cancel">Cancel</button>
       <button class="modal-confirm" id="bc-confirm">Add to Label</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory Item Picker Modal -->
+<div class="modal-overlay" id="inv-modal" style="display:none">
+  <div class="modal" style="width:400px">
+    <div class="modal-title">Import from Lab Inventory</div>
+    <input type="text" class="inv-search" id="inv-search" placeholder="Search by name or 12NC...">
+    <div class="inv-list" id="inv-list">
+      <div class="inv-empty">Loading inventory...</div>
+    </div>
+    <div style="font-size:11px;color:var(--tx-3);margin-top:8px">
+      Places item name as text and 12NC as CODE128 barcode on the label.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="inv-cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -1377,6 +1457,91 @@ function exportPNG() {
   document.getElementById('status-info').textContent = `Exported ${W}x${H}px at ${dpi} DPI`;
 }
 
+function printLabel() {
+  const dpi = S.exportDPI;
+  const ppm = dpi / 25.4;
+  const W = Math.round(S.canvas.width * ppm);
+  const H = Math.round(S.canvas.height * ppm);
+
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  for (const el of S.elements) {
+    const x = el.x * ppm;
+    const y = el.y * ppm;
+
+    if (el.type === 'text') {
+      const fsPx = el.fontSize * (dpi / 72);
+      const weight = el.bold ? 'bold' : 'normal';
+      const style = el.italic ? 'italic' : 'normal';
+      ctx.font = `${style} ${weight} ${fsPx}px "${el.fontFamily || 'Arial'}"`;
+      ctx.fillStyle = el.color || '#000000';
+      ctx.textBaseline = 'top';
+      const lines = (el.text || '').split('\n');
+      const lh = fsPx * 1.3;
+      lines.forEach((line, i) => ctx.fillText(line, x, y + i * lh));
+    } else if (el.type === 'barcode') {
+      const w = el.width * ppm;
+      const h = el.height * ppm;
+      if (el.barcodeType === 'QR') {
+        try {
+          const qr = qrcode(0, 'M');
+          qr.addData(el.data);
+          qr.make();
+          const mc = qr.getModuleCount();
+          const cs = Math.min(w, h) / mc;
+          const ox = x + (w - cs * mc) / 2;
+          const oy = y + (h - cs * mc) / 2;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x, y, w, h);
+          ctx.fillStyle = '#000000';
+          for (let r = 0; r < mc; r++)
+            for (let c = 0; c < mc; c++)
+              if (qr.isDark(r, c))
+                ctx.fillRect(ox + c * cs, oy + r * cs, Math.ceil(cs), Math.ceil(cs));
+        } catch (e) { console.warn('QR print error', e); }
+      } else {
+        try {
+          const bcv = document.createElement('canvas');
+          JsBarcode(bcv, el.data, {
+            format: el.barcodeType,
+            width: 4,
+            height: Math.round(h * 0.75),
+            displayValue: el.showText !== false,
+            margin: Math.round(ppm * 0.5),
+            fontSize: Math.round(h * 0.12),
+            textMargin: Math.round(ppm * 0.3),
+            background: '#ffffff',
+          });
+          ctx.drawImage(bcv, x, y, w, h);
+        } catch (e) { console.warn('Barcode print error', e); }
+      }
+    }
+  }
+
+  const imgDataUrl = cv.toDataURL('image/png');
+  const wMM = S.canvas.width;
+  const hMM = S.canvas.height;
+
+  const printWin = window.open('', '_blank');
+  printWin.document.write(
+    '<!DOCTYPE html><html><head><title>Print Label</title>' +
+    '<style>' +
+    '@page { size: ' + wMM + 'mm ' + hMM + 'mm; margin: 0; }' +
+    'html, body { margin: 0; padding: 0; width: ' + wMM + 'mm; height: ' + hMM + 'mm; }' +
+    'img { display: block; width: ' + wMM + 'mm; height: ' + hMM + 'mm; }' +
+    '</style></head><body>' +
+    '<img src="' + imgDataUrl + '">' +
+    '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>' +
+    '</body></html>'
+  );
+  printWin.document.close();
+}
+
 // ----- Toolbar Handlers -----
 function setActiveTool(tool) {
   S.activeTool = tool;
@@ -1436,6 +1601,146 @@ function onKey(e) {
   }
 }
 
+// ----- Inventory Import -----
+const INV_STORAGE_KEY = 'arnout-lab-inventory-v2';
+let invItems = [];
+
+function loadInventoryItems() {
+  invItems = [];
+  // Try IndexedDB first, fall back to localStorage
+  const req = indexedDB.open('lab-inventory-db', 1);
+  req.onsuccess = function(e) {
+    try {
+      const db = e.target.result;
+      if (db.objectStoreNames.contains('inventory')) {
+        const tx = db.transaction('inventory', 'readonly');
+        const store = tx.objectStore('inventory');
+        const get = store.get('main');
+        get.onsuccess = function() {
+          if (get.result && get.result.items) {
+            invItems = get.result.items;
+          } else {
+            loadInventoryFromLocalStorage();
+          }
+          renderInventoryList('');
+        };
+        get.onerror = function() {
+          loadInventoryFromLocalStorage();
+          renderInventoryList('');
+        };
+      } else {
+        loadInventoryFromLocalStorage();
+        renderInventoryList('');
+      }
+    } catch (err) {
+      loadInventoryFromLocalStorage();
+      renderInventoryList('');
+    }
+  };
+  req.onerror = function() {
+    loadInventoryFromLocalStorage();
+    renderInventoryList('');
+  };
+}
+
+function loadInventoryFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(INV_STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      invItems = data.items || [];
+    }
+  } catch (e) {
+    invItems = [];
+  }
+}
+
+function renderInventoryList(query) {
+  const list = document.getElementById('inv-list');
+  const q = (query || '').toLowerCase().trim();
+  const filtered = invItems.filter(item => {
+    if (!q) return true;
+    return (item.name || '').toLowerCase().includes(q) ||
+           (item.nc || '').toLowerCase().includes(q);
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="inv-empty">' +
+      (invItems.length === 0 ? 'No inventory data found.<br>Open Lab Inventory first to populate data.' : 'No items match your search.') +
+      '</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(item =>
+    '<div class="inv-item" data-item-id="' + item.id + '">' +
+      '<div class="inv-item-name">' + esc(item.name || 'Unnamed') + '</div>' +
+      (item.nc ? '<div class="inv-item-nc">' + esc(item.nc) + '</div>' : '') +
+      '<div class="inv-item-meta">' + esc(item.category || '') +
+        (item.box ? ' \u2022 ' + esc(item.box) : '') +
+        (item.quantity != null ? ' \u2022 Qty: ' + item.quantity : '') +
+      '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function openInventoryModal() {
+  loadInventoryItems();
+  document.getElementById('inv-search').value = '';
+  document.getElementById('inv-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('inv-search').focus(), 50);
+}
+
+function closeInventoryModal() {
+  document.getElementById('inv-modal').style.display = 'none';
+}
+
+function importInventoryItem(itemId) {
+  const item = invItems.find(i => i.id === itemId || String(i.id) === String(itemId));
+  if (!item) return;
+
+  closeInventoryModal();
+
+  // Clear canvas for a fresh label
+  S.elements = [];
+  S.selectedId = null;
+
+  // Add item name as text at top of label
+  const nameEl = {
+    id: uid(), type: 'text',
+    x: 1, y: 1,
+    text: item.name || 'Unnamed',
+    fontFamily: 'Arial', fontSize: 8,
+    bold: true, italic: false,
+    color: '#000000', letterSpacing: 0,
+  };
+  S.elements.push(nameEl);
+
+  // Add 12NC as CODE128 barcode below the text
+  if (item.nc) {
+    const ncClean = item.nc.replace(/\s+/g, '');
+    const bw = Math.min(S.canvas.width - 2, 28);
+    const bh = 10;
+    const imgData = generateBarcodeImg('CODE128', ncClean, bw, bh, true);
+    if (imgData) {
+      const bcEl = {
+        id: uid(), type: 'barcode',
+        x: Math.max(0, (S.canvas.width - bw) / 2),
+        y: 7,
+        width: bw, height: bh,
+        barcodeType: 'CODE128',
+        data: ncClean,
+        showText: true,
+        imageData: imgData,
+      };
+      S.elements.push(bcEl);
+    }
+  }
+
+  S.activeTool = 'select';
+  setActiveTool('select');
+  renderCanvas();
+}
+
 // ----- Init -----
 function init() {
   canvasEl = document.getElementById('design-canvas');
@@ -1487,6 +1792,7 @@ function init() {
 
   // Toolbar: export
   document.getElementById('btn-export').addEventListener('click', exportPNG);
+  document.getElementById('btn-print').addEventListener('click', printLabel);
 
   // Sidebar: tools
   document.querySelectorAll('.tool-btn').forEach(btn => {
@@ -1559,6 +1865,20 @@ function init() {
   });
   document.getElementById('bc-data').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') confirmBarcode();
+  });
+
+  // Inventory modal
+  document.getElementById('btn-inv-import').addEventListener('click', openInventoryModal);
+  document.getElementById('inv-cancel').addEventListener('click', closeInventoryModal);
+  document.getElementById('inv-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeInventoryModal();
+  });
+  document.getElementById('inv-search').addEventListener('input', (e) => {
+    renderInventoryList(e.target.value);
+  });
+  document.getElementById('inv-list').addEventListener('click', (e) => {
+    const item = e.target.closest('.inv-item');
+    if (item) importInventoryItem(item.dataset.itemId);
   });
 
   // Initial render
