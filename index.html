@@ -125,13 +125,16 @@
       TAGLINE: 'Building things that work (mostly)',
 
       // Repos to exclude (by name)
-      EXCLUDE_REPOS: ['lab-inventory'], // Exclude since it's embedded as a section
+      EXCLUDE_REPOS: ['lab-inventory', 'pages'], // Exclude embedded apps and the pages repo itself
 
       // Only show repos with these topics (leave empty to show all)
       FILTER_TOPICS: [],
 
       // Hide forked repos
       HIDE_FORKS: false,
+
+      // Admin password for login (enables hide/unhide repos)
+      ADMIN_PASSWORD: 'admin',
 
       // Integrated apps (local copies, linked from portfolio)
       INTEGRATED_APPS: [
@@ -145,6 +148,13 @@
         }
       ],
     };
+    // ============================================
+
+    // ============================================
+    // BUILD INFO - AUTO-UPDATED BY PRE-COMMIT HOOK
+    // ============================================
+    const BUILD_COMMIT = '35ebc6d77e39709bda39c3741b6a3d48c19f4a42';
+    const BUILD_DATE = '2026-02-06';
     // ============================================
 
     // Lucide icons
@@ -261,14 +271,15 @@
     };
 
     // Project Card
-    const ProjectCard = ({ repo, onClick }) => {
+    const ProjectCard = ({ repo, onClick, isAdmin, isHidden, onToggleHide }) => {
       const langColor = languageColors[repo.language] || '#6b7280';
 
       return (
         <div onClick={onClick}
-             className="group relative bg-zinc-900 border border-zinc-700 rounded-lg p-5 cursor-pointer
+             className={`group relative bg-zinc-900 border rounded-lg p-5 cursor-pointer
                         hover:border-amber-500/50 hover:bg-zinc-800/80 transition-all duration-300
-                        hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1">
+                        hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1
+                        ${isHidden ? 'border-red-500/30 opacity-60' : 'border-zinc-700'}`}>
           {/* Terminal header */}
           <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-700">
             <div className="flex gap-1.5">
@@ -276,12 +287,26 @@
               <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
               <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
             </div>
-            <span className="text-zinc-500 font-mono text-xs ml-2 truncate">~/projects/{repo.name}</span>
+            <span className="text-zinc-500 font-mono text-xs ml-2 truncate flex-1">~/projects/{repo.name}</span>
+            {isAdmin && (
+              <button onClick={(e) => { e.stopPropagation(); onToggleHide(repo.name); }}
+                      title={isHidden ? 'Unhide repo' : 'Hide repo'}
+                      className={`p-1 rounded transition-colors z-10 ${isHidden
+                        ? 'text-red-400 hover:bg-red-500/20 hover:text-red-300'
+                        : 'text-zinc-600 hover:bg-zinc-700 hover:text-zinc-300'}`}>
+                <Icon name={isHidden ? 'EyeOff' : 'Eye'} size={14} />
+              </button>
+            )}
           </div>
 
-          <h3 className="text-xl font-mono font-bold text-zinc-100 group-hover:text-amber-400 transition-colors mb-2 truncate">
-            {repo.name}
-          </h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-xl font-mono font-bold text-zinc-100 group-hover:text-amber-400 transition-colors truncate">
+              {repo.name}
+            </h3>
+            {isHidden && (
+              <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-mono shrink-0">hidden</span>
+            )}
+          </div>
 
           <p className="text-zinc-400 text-sm mb-4 line-clamp-2 min-h-[40px]">
             {repo.description || 'No description provided'}
@@ -554,6 +579,72 @@
       </button>
     );
 
+    // Login Modal
+    const LoginModal = ({ onLogin, onClose }) => {
+      const [password, setPassword] = useState('');
+      const [error, setError] = useState('');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (password === CONFIG.ADMIN_PASSWORD) {
+          onLogin();
+        } else {
+          setError('Invalid password');
+          setPassword('');
+        }
+      };
+
+      useEffect(() => {
+        const handleEsc = (e) => e.key === 'Escape' && onClose();
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+      }, [onClose]);
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+             onClick={onClose}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-sm shadow-2xl"
+               onClick={e => e.stopPropagation()}>
+            <div className="bg-zinc-800 border-b border-zinc-700 p-3 flex items-center justify-between rounded-t-xl">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-400" onClick={onClose}></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icon name="Lock" size={16} className="text-amber-500" />
+                  <span className="font-mono text-zinc-200 text-sm font-bold">Admin Login</span>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 p-1 hover:bg-zinc-700 rounded">
+                <Icon name="X" size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6">
+              <label className="block font-mono text-xs text-zinc-500 mb-2">
+                <span className="text-green-400">$</span> enter password
+              </label>
+              <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                     autoFocus placeholder="••••••••"
+                     className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm
+                              placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none mb-3" />
+              {error && (
+                <p className="text-red-400 text-xs font-mono mb-3">
+                  <span className="text-red-500">error:</span> {error}
+                </p>
+              )}
+              <button type="submit"
+                      className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-900 font-mono font-bold text-sm
+                               py-2.5 rounded-lg transition-colors">
+                Authenticate
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    };
+
     // Embedded App View - iframe for local apps
     const EmbeddedApp = ({ app }) => (
       <div className="relative w-full h-[calc(100vh-160px)] min-h-[600px] bg-zinc-900 rounded-xl overflow-hidden border border-zinc-700 shadow-2xl">
@@ -598,6 +689,20 @@
       const [selectedRepo, setSelectedRepo] = useState(null);
       const [username, setUsername] = useState(CONFIG.GITHUB_USERNAME);
       const [activeView, setActiveView] = useState('projects'); // 'projects', 'forked-projects', or app id
+      const [isAdmin, setIsAdmin] = useState(false);
+      const [showLoginModal, setShowLoginModal] = useState(false);
+      const [hiddenRepos, setHiddenRepos] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('hiddenRepos') || '[]'); }
+        catch { return []; }
+      });
+
+      const toggleHideRepo = (repoName) => {
+        setHiddenRepos(prev => {
+          const next = prev.includes(repoName) ? prev.filter(n => n !== repoName) : [...prev, repoName];
+          localStorage.setItem('hiddenRepos', JSON.stringify(next));
+          return next;
+        });
+      };
 
       // Fetch repos
       useEffect(() => {
@@ -650,6 +755,11 @@
       const filteredRepos = useMemo(() => {
         let filtered = repos;
 
+        // Hide hidden repos for non-admin users
+        if (!isAdmin) {
+          filtered = filtered.filter(r => !hiddenRepos.includes(r.name));
+        }
+
         if (searchTerm) {
           const term = searchTerm.toLowerCase();
           filtered = filtered.filter(r =>
@@ -676,7 +786,7 @@
             default: return new Date(b.updated_at) - new Date(a.updated_at);
           }
         });
-      }, [repos, searchTerm, selectedLanguage, activeView, sortBy]);
+      }, [repos, searchTerm, selectedLanguage, activeView, sortBy, isAdmin, hiddenRepos]);
 
       return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -715,11 +825,28 @@
                   ))}
                 </div>
 
-                <a href={`https://github.com/${username}`} target="_blank" rel="noopener noreferrer"
-                   className="flex items-center gap-2 text-zinc-400 hover:text-amber-400 transition-colors">
-                  <Icon name="Github" size={18} />
-                  <span className="font-mono text-sm">@{username}</span>
-                </a>
+                <div className="flex items-center gap-3">
+                  <a href={`https://github.com/${username}`} target="_blank" rel="noopener noreferrer"
+                     className="flex items-center gap-2 text-zinc-400 hover:text-amber-400 transition-colors">
+                    <Icon name="Github" size={18} />
+                    <span className="font-mono text-sm">@{username}</span>
+                  </a>
+                  {isAdmin ? (
+                    <button onClick={() => setIsAdmin(false)}
+                            className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 hover:bg-amber-500/30
+                                     px-3 py-1.5 rounded-lg font-mono text-xs transition-colors border border-amber-500/30">
+                      <Icon name="LogOut" size={14} />
+                      <span className="hidden sm:inline">Logout</span>
+                    </button>
+                  ) : (
+                    <button onClick={() => setShowLoginModal(true)}
+                            className="flex items-center gap-1.5 bg-zinc-800 text-zinc-500 hover:text-zinc-300
+                                     hover:bg-zinc-700 px-3 py-1.5 rounded-lg font-mono text-xs transition-colors border border-zinc-700">
+                      <Icon name="Lock" size={14} />
+                      <span className="hidden sm:inline">Login</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </header>
@@ -794,7 +921,9 @@
                     {filteredRepos.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredRepos.map(repo => (
-                          <ProjectCard key={repo.id} repo={repo} onClick={() => setSelectedRepo(repo)} />
+                          <ProjectCard key={repo.id} repo={repo} onClick={() => setSelectedRepo(repo)}
+                                       isAdmin={isAdmin} isHidden={hiddenRepos.includes(repo.name)}
+                                       onToggleHide={toggleHideRepo} />
                         ))}
                       </div>
                     ) : (
@@ -811,12 +940,35 @@
 
           {/* Footer */}
           <footer className="border-t border-zinc-800 bg-zinc-900/50 py-8 mt-12">
-            <div className="max-w-7xl mx-auto px-4 text-center">
+            <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
               <p className="font-mono text-sm text-zinc-600">
                 <span className="text-amber-500/50">/*</span> Built with React • Powered by GitHub API <span className="text-amber-500/50">*/</span>
               </p>
+              <div className="flex items-center justify-center gap-3 font-mono text-xs text-zinc-700">
+                {BUILD_COMMIT !== 'dev' && (
+                  <>
+                    <a href={`https://github.com/${username}/pages/commit/${BUILD_COMMIT}`}
+                       target="_blank" rel="noopener noreferrer"
+                       className="flex items-center gap-1 hover:text-zinc-500 transition-colors">
+                      <Icon name="GitCommitHorizontal" size={12} />
+                      <span>{BUILD_COMMIT.slice(0, 7)}</span>
+                    </a>
+                    <span className="text-zinc-800">•</span>
+                  </>
+                )}
+                <span className="flex items-center gap-1">
+                  <Icon name="Calendar" size={12} />
+                  <span>{BUILD_DATE !== 'dev' ? BUILD_DATE : 'development'}</span>
+                </span>
+              </div>
             </div>
           </footer>
+
+          {/* Login Modal */}
+          {showLoginModal && (
+            <LoginModal onLogin={() => { setIsAdmin(true); setShowLoginModal(false); }}
+                        onClose={() => setShowLoginModal(false)} />
+          )}
 
           {/* Documentation Reader Modal */}
           {selectedRepo && (
