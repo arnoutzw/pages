@@ -22,7 +22,7 @@ header .sub{font-size:11px;color:var(--t2)}
 .nav a:hover{color:var(--t0);border-color:var(--t2)}
 .nav a.act{color:var(--acc);border-color:var(--acc);font-weight:700}
 .main{display:flex;flex:1;overflow:hidden}
-.sidebar{width:320px;min-width:320px;background:var(--bg1);border-right:1px solid var(--brd);overflow-y:auto;padding:8px;flex-shrink:0}
+.sidebar{width:340px;min-width:340px;background:var(--bg1);border-right:1px solid var(--brd);overflow-y:auto;padding:8px;flex-shrink:0}
 .sidebar::-webkit-scrollbar{width:6px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
 .pnl{background:var(--bg2);border-radius:var(--r);margin-bottom:6px;overflow:hidden}
@@ -38,18 +38,12 @@ header .sub{font-size:11px;color:var(--t2)}
 .pr input[type=number],.pr input[type=text],.pr select{flex:1;background:var(--bg1);border:1px solid var(--brd);border-radius:4px;padding:4px 6px;color:var(--t0);font-size:12px;font-family:'SF Mono',Menlo,monospace}
 .pr input:focus,.pr select:focus{outline:none;border-color:var(--acc)}
 .pr select{cursor:pointer}
-.pr-v{display:flex;flex-direction:column;margin-bottom:6px;gap:4px}
-.pr-v label{font-size:12px;color:var(--t2)}
-.pr-v textarea{background:var(--bg1);border:1px solid var(--brd);border-radius:4px;padding:6px;color:var(--t0);font-size:12px;font-family:'SF Mono',Menlo,monospace;resize:vertical;min-height:40px}
-.pr-v textarea:focus{outline:none;border-color:var(--acc)}
 .dims{font-size:11px;color:var(--t2);padding:4px 0;font-family:'SF Mono',Menlo,monospace}
 .dims.err{color:var(--red)}
-.tgl-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .tgl{position:relative;width:32px;height:18px;background:var(--bg3);border-radius:9px;cursor:pointer;transition:background .2s;flex-shrink:0}
 .tgl.on{background:var(--acc)}
 .tgl::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .2s}
 .tgl.on::after{transform:translateX(14px)}
-.tgl-row label{font-size:12px;color:var(--t2)}
 .dof-pnl{border:1px solid var(--brd);border-radius:4px;margin-bottom:6px;overflow:hidden}
 .dof-h{display:flex;align-items:center;gap:6px;padding:6px 8px;cursor:pointer;font-size:12px}
 .dof-h .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
@@ -57,6 +51,22 @@ header .sub{font-size:11px;color:var(--t2)}
 .dof-h .arr{font-size:10px;color:var(--t2)}
 .dof-b{padding:6px 8px}
 .dof-b.hide{display:none}
+/* Matrix bracket notation */
+.mat-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.mat-lbl{font-size:14px;font-weight:700;color:var(--t0);font-style:italic;min-width:12px;text-align:right;font-family:'Times New Roman',Georgia,serif}
+.mat-eq{font-size:14px;color:var(--t2)}
+.mat-wrap{position:relative;padding:6px 10px}
+.mat-wrap::before,.mat-wrap::after{content:'';position:absolute;top:0;bottom:0;width:5px;border:1.5px solid var(--t2)}
+.mat-wrap::before{left:0;border-right:none;border-radius:3px 0 0 3px}
+.mat-wrap::after{right:0;border-left:none;border-radius:0 3px 3px 0}
+.mat-g{display:grid;gap:3px}
+.mat-g input{width:52px;text-align:center;background:var(--bg1);border:1px solid var(--brd);border-radius:3px;padding:3px 2px;color:var(--t0);font-size:12px;font-family:'SF Mono',Menlo,monospace}
+.mat-g input:focus{outline:none;border-color:var(--acc)}
+.dim-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.dim-row label{font-size:11px;color:var(--t2)}
+.dim-row select{width:44px;background:var(--bg1);border:1px solid var(--brd);border-radius:4px;padding:3px 4px;color:var(--t0);font-size:12px;font-family:'SF Mono',Menlo,monospace;cursor:pointer}
+.dim-row select:focus{outline:none;border-color:var(--acc)}
+/* Plot area */
 .plot-area{flex:1;display:flex;flex-direction:column;padding:8px;gap:6px;overflow:hidden;min-width:0}
 .tabs{display:flex;gap:2px;flex-shrink:0}
 .tab{padding:7px 14px;border:none;border-radius:var(--r) var(--r) 0 0;background:var(--bg2);color:var(--t2);font-size:12px;cursor:pointer;transition:all .15s;font-weight:500}
@@ -72,9 +82,9 @@ header .sub{font-size:11px;color:var(--t2)}
 .chwrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important}
 .chwrap.hide{display:none}
 .legend{display:flex;gap:10px;padding:4px 8px;flex-wrap:wrap;flex-shrink:0}
-.leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2);cursor:pointer}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)}
 .leg-item .swatch{width:12px;height:3px;border-radius:2px}
-@media(max-width:900px){.main{flex-direction:column}.sidebar{width:100%;min-width:auto;max-height:35vh;border-right:none;border-bottom:1px solid var(--brd)}}
+@media(max-width:900px){.main{flex-direction:column}.sidebar{width:100%;min-width:auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--brd)}}
 </style>
 </head>
 <body>
@@ -98,11 +108,13 @@ header .sub{font-size:11px;color:var(--t2)}
 <!-- State-Space Plant -->
 <div class="pnl"><div class="pnl-h" onclick="tP(this)"><h3>State-Space Plant</h3><span class="arr">&#9660;</span></div>
 <div class="pnl-b">
-<div class="pr"><label>Example</label><select id="ssExample" onchange="loadExample()"><option value="">-- Custom --</option><option value="2dof" selected>2-DoF 2nd Order</option><option value="3dof">3-DoF Mixed Order</option></select></div>
-<div class="pr-v"><label>A (state matrix)</label><textarea id="ssA" rows="3">0 1 0 0; -1 -1 0 0; 0 0 0 1; 0 0 -4 -1.2</textarea></div>
-<div class="pr-v"><label>B (input matrix)</label><textarea id="ssB" rows="2">0 0; 1 0; 0 0; 0 1</textarea></div>
-<div class="pr-v"><label>C (output matrix)</label><textarea id="ssC" rows="2">1 0 0 0; 0 0 4 0</textarea></div>
-<div class="pr-v"><label>D (feedthrough matrix)</label><textarea id="ssD" rows="1">0 0; 0 0</textarea></div>
+<div class="pr"><label>Example</label><select id="ssExample"><option value="">-- Custom --</option><option value="2dof1" selected>2-DoF 1st Order</option><option value="siso2">SISO 2nd Order</option><option value="3dof">3-DoF 1st Order</option></select></div>
+<div class="dim-row">
+<label>n</label><select id="ssN"><option>1</option><option selected>2</option><option>3</option></select>
+<label>m</label><select id="ssM"><option>1</option><option selected>2</option><option>3</option></select>
+<label>p</label><select id="ssP"><option>1</option><option selected>2</option><option>3</option></select>
+</div>
+<div id="matSection"></div>
 <div class="dims" id="ssDims"></div>
 </div></div>
 
@@ -149,54 +161,69 @@ const Cx={
   scale:(a,s)=>({re:a.re*s,im:a.im*s})
 };
 
-/* ========== MATRIX PARSING ========== */
-function parseMat(s){
-  s=s.trim();
-  if(!s)return[];
-  const rows=s.split(/;|\n/).map(r=>r.trim()).filter(r=>r.length>0);
-  return rows.map(r=>r.split(/[\s,]+/).map(Number));
+/* ========== MATRIX UI ========== */
+const $=id=>document.getElementById(id);
+
+function buildMatGrids(){
+  const n=+$('ssN').value,m=+$('ssM').value,p=+$('ssP').value;
+  // Save current input values by ID
+  const saved={};
+  document.querySelectorAll('#matSection input').forEach(el=>{saved[el.id]=+el.value;});
+  let h='';
+  h+=matHTML('A','a',n,n,saved);
+  h+=matHTML('B','b',n,m,saved);
+  h+=matHTML('C','c',p,n,saved);
+  h+=matHTML('D','d',p,m,saved);
+  $('matSection').innerHTML=h;
+  attachMatListeners();
 }
 
-function validateSS(A,B,C,D){
-  if(!A.length&&!B.length&&!C.length&&!D.length)return{err:'Empty matrices'};
-  const nSt=A.length;
-  // A: nSt x nSt
-  if(nSt>0){
-    for(let i=0;i<nSt;i++)if(!A[i]||A[i].length!==nSt)return{err:`A must be ${nSt}x${nSt}`};
+function matHTML(label,prefix,rows,cols,saved){
+  let h=`<div class="mat-row"><span class="mat-lbl">${label}</span><span class="mat-eq">=</span><div class="mat-wrap"><div class="mat-g" style="grid-template-columns:repeat(${cols},52px)">`;
+  for(let i=0;i<rows;i++)
+    for(let j=0;j<cols;j++){
+      const id=prefix+'_'+i+'_'+j;
+      const v=saved[id]!==undefined?saved[id]:0;
+      h+=`<input type="number" id="${id}" value="${v}" step="0.1">`;
+    }
+  h+=`</div></div></div>`;
+  return h;
+}
+
+function readMat(prefix,rows,cols){
+  const M=[];
+  for(let i=0;i<rows;i++){
+    M.push([]);
+    for(let j=0;j<cols;j++){
+      const el=$(prefix+'_'+i+'_'+j);
+      M[i].push(el?+el.value:0);
+    }
   }
-  // B: nSt x nIn
-  const nIn=nSt>0&&B.length>0?B[0].length:D.length>0?D[0].length:0;
-  if(nSt>0){
-    if(B.length!==nSt)return{err:`B must have ${nSt} rows`};
-    for(let i=0;i<nSt;i++)if(!B[i]||B[i].length!==nIn)return{err:`B columns inconsistent`};
-  }
-  // C: nOut x nSt
-  const nOut=C.length;
-  if(nOut===0)return{err:'C must have at least 1 row'};
-  if(nSt>0){for(let i=0;i<nOut;i++)if(!C[i]||C[i].length!==nSt)return{err:`C must have ${nSt} cols`};}
-  // D: nOut x nIn (broadcast scalar 0)
-  let Df;
-  if(D.length===0||D.length===1&&D[0].length===1&&D[0][0]===0){
-    Df=Array.from({length:nOut},()=>new Array(nIn).fill(0));
-  }else{
-    if(D.length!==nOut)return{err:`D must have ${nOut} rows`};
-    for(let i=0;i<nOut;i++)if(!D[i]||D[i].length!==nIn)return{err:`D must have ${nIn} cols`};
-    Df=D;
-  }
-  // Check for NaN
-  const check=m=>m.every(r=>r.every(v=>isFinite(v)));
-  if(nSt>0&&!check(A))return{err:'A has invalid values'};
-  if(nSt>0&&!check(B))return{err:'B has invalid values'};
+  return M;
+}
+
+function setMat(prefix,vals){
+  for(let i=0;i<vals.length;i++)
+    for(let j=0;j<vals[i].length;j++){
+      const el=$(prefix+'_'+i+'_'+j);
+      if(el)el.value=vals[i][j];
+    }
+}
+
+function readSS(){
+  const n=+$('ssN').value,m=+$('ssM').value,p=+$('ssP').value;
+  const A=readMat('a',n,n),B=readMat('b',n,m),C=readMat('c',p,n),D=readMat('d',p,m);
+  const check=mat=>mat.every(r=>r.every(v=>isFinite(v)));
+  if(!check(A))return{err:'A has invalid values'};
+  if(!check(B))return{err:'B has invalid values'};
   if(!check(C))return{err:'C has invalid values'};
-  if(!check(Df))return{err:'D has invalid values'};
-  const nDoF=Math.min(nIn,nOut);
-  return{nSt,nIn,nOut,nDoF,A,B,C,D:Df,err:null};
+  if(!check(D))return{err:'D has invalid values'};
+  const nDoF=Math.min(m,p);
+  return{nSt:n,nIn:m,nOut:p,nDoF,A,B,C,D,err:null};
 }
 
 /* ========== COMPLEX GAUSSIAN ELIMINATION ========== */
-// Solve (A_cx) x = b_cx where A_cx is n x n complex, b_cx is n x 1 complex
 function cxSolve(A,b,n){
-  // Augmented matrix [A|b]
   const M=Array.from({length:n},(_,i)=>{
     const row=new Array(n+1);
     for(let j=0;j<n;j++)row[j]={re:A[i][j].re,im:A[i][j].im};
@@ -204,10 +231,9 @@ function cxSolve(A,b,n){
     return row;
   });
   for(let col=0;col<n;col++){
-    // Partial pivoting
     let maxVal=Cx.abs(M[col][col]),maxRow=col;
     for(let r=col+1;r<n;r++){const v=Cx.abs(M[r][col]);if(v>maxVal){maxVal=v;maxRow=r;}}
-    if(maxVal<1e-14)return null; // singular
+    if(maxVal<1e-14)return null;
     if(maxRow!==col){const tmp=M[col];M[col]=M[maxRow];M[maxRow]=tmp;}
     const pivot=M[col][col];
     for(let r=col+1;r<n;r++){
@@ -215,7 +241,6 @@ function cxSolve(A,b,n){
       for(let j=col;j<=n;j++)M[r][j]=Cx.sub(M[r][j],Cx.mul(f,M[col][j]));
     }
   }
-  // Back substitution
   const x=new Array(n);
   for(let i=n-1;i>=0;i--){
     let sum=M[i][n];
@@ -225,56 +250,40 @@ function cxSolve(A,b,n){
   return x;
 }
 
-/* ========== PID TRANSFER FUNCTION (complex eval) ========== */
+/* ========== PID EVAL (complex) ========== */
 function pidEval(pid,jw){
   const{Kp,Ki,Kd,Tf}=pid;
-  // C(s) = Kp + Ki/s + Kd*s/(1+Tf*s)
   let H=Cx.n(Kp);
-  if(Math.abs(Ki)>1e-15){
-    H=Cx.add(H,Cx.div(Cx.n(Ki),jw));
-  }
-  if(Math.abs(Kd)>1e-15){
-    H=Cx.add(H,Cx.div(Cx.mul(Cx.n(Kd),jw),Cx.add(Cx.n(1),Cx.mul(Cx.n(Tf),jw))));
-  }
+  if(Math.abs(Ki)>1e-15)H=Cx.add(H,Cx.div(Cx.n(Ki),jw));
+  if(Math.abs(Kd)>1e-15)H=Cx.add(H,Cx.div(Cx.mul(Cx.n(Kd),jw),Cx.add(Cx.n(1),Cx.mul(Cx.n(Tf),jw))));
   return H;
 }
 
 /* ========== PER-CHANNEL OPEN-LOOP FREQUENCY RESPONSE ========== */
-// L_i(jw) = PID_i(jw) * G_ii(jw)
-// G_ii(jw) = C_i * (jwI - A)^{-1} * B_i + D_ii
 function mimoFreqResp(ss,pids,freqs){
   const{A,B,C,D,nSt,nDoF}=ss;
-  const nFreq=freqs.length;
   const result=[];
   for(let ch=0;ch<nDoF;ch++){
     const mags=[],phases=[];
-    for(let fi=0;fi<nFreq;fi++){
-      const w=freqs[fi];
-      const jw=Cx.n(0,w);
-      // Build (jwI - A)
+    for(let fi=0;fi<freqs.length;fi++){
+      const w=freqs[fi],jw=Cx.n(0,w);
       let Gii;
       if(nSt>0){
         const M=Array.from({length:nSt},(_,r)=>
-          Array.from({length:nSt},(__,c)=>
-            r===c?Cx.sub(jw,Cx.n(A[r][c])):Cx.n(-A[r][c])
-          )
+          Array.from({length:nSt},(__,c)=>r===c?Cx.sub(jw,Cx.n(A[r][c])):Cx.n(-A[r][c]))
         );
-        // b = B_column_ch
         const bVec=Array.from({length:nSt},(_,r)=>Cx.n(B[r][ch]));
         const x=cxSolve(M,bVec,nSt);
         if(!x){mags.push(-300);phases.push(0);continue;}
-        // G_ii = C_row_ch . x + D[ch][ch]
         Gii=Cx.n(D[ch][ch]);
         for(let k=0;k<nSt;k++)Gii=Cx.add(Gii,Cx.mul(Cx.n(C[ch][k]),x[k]));
       }else{
         Gii=Cx.n(D[ch][ch]);
       }
-      // L_i = PID_i * G_ii
       const Li=Cx.mul(pidEval(pids[ch],jw),Gii);
       mags.push(20*Math.log10(Math.max(Cx.abs(Li),1e-30)));
       phases.push(Cx.arg(Li)*180/Math.PI);
     }
-    // Unwrap phase
     for(let i=1;i<phases.length;i++){
       while(phases[i]-phases[i-1]>180)phases[i]-=360;
       while(phases[i]-phases[i-1]<-180)phases[i]+=360;
@@ -306,34 +315,10 @@ function bodeMetrics(freqs,m,ph){
 }
 
 /* ========== CLOSED-LOOP STEP SIMULATION (RK4) ========== */
-// Full state: [plant_states..., integ_0, zf_0, integ_1, zf_1, ...]
-// Plant: dx_p = A*x_p + B*u
-//        y = C*x_p + D*u
-// PID_i: u_i = Kp_i*e_i + Ki_i*integ_i + Kd_i*(e_i - zf_i)/Tf_i
-//        d(integ_i) = e_i
-//        d(zf_i) = (e_i - zf_i)/Tf_i
 function mimoStepSim(ss,pids,tEnd,nPts,excCh,excAmp){
   const{A,B,C,D,nSt,nDoF}=ss;
-  const nPid=nDoF*2; // 2 states per PID (integrator + filter)
-  const N=nSt+nPid;
-  const dt=tEnd/(nPts-1);
-
-  // Reference signal: step on excCh
+  const nPid=nDoF*2,N=nSt+nPid,dt=tEnd/(nPts-1);
   function ref(ch){return ch===excCh?excAmp:0;}
-
-  // Compute PID outputs from error vector
-  function pidOutputs(e,state){
-    const u=new Array(nDoF);
-    for(let i=0;i<nDoF;i++){
-      const{Kp,Ki,Kd,Tf}=pids[i];
-      const integ=state[nSt+i*2];
-      const zf=state[nSt+i*2+1];
-      u[i]=Kp*e[i]+Ki*integ+Kd*(e[i]-zf)/Tf;
-    }
-    return u;
-  }
-
-  // Compute plant output y = C*xp + D*u
   function plantOut(xp,u){
     const y=new Array(nDoF);
     for(let i=0;i<nDoF;i++){
@@ -343,86 +328,52 @@ function mimoStepSim(ss,pids,tEnd,nPts,excCh,excAmp){
     }
     return y;
   }
-
-  // Check if D has nonzero diagonal (algebraic loop)
   const hasAlgLoop=Array.from({length:nDoF},(_,i)=>Math.abs(D[i][i])>1e-15);
-
-  // Solve algebraic loop: y = C*xp + D*u, e = r - y, u = f(e, states)
-  // For decoupled: u_i = Kp_i*(r_i - y_i) + ... (state terms)
-  // y_i = cy_i + D_ii*u_i, where cy_i = C_i*xp + sum_{j!=i} D_ij*u_j
-  // For diagonal D with decoupled PID:
-  // u_i = Ke_i*(r_i - y_i) + uf_i  where Ke_i = Kp_i + Kd_i/Tf_i, uf_i = Ki_i*integ_i - Kd_i*zf_i/Tf_i
-  // y_i = cy_i + D_ii*u_i
-  // => u_i = Ke_i*(r_i - cy_i - D_ii*u_i) + uf_i
-  // => u_i*(1 + Ke_i*D_ii) = Ke_i*(r_i - cy_i) + uf_i
-  // => u_i = (Ke_i*(r_i - cy_i) + uf_i) / (1 + Ke_i*D_ii)
   function computeUandY(state){
     const xp=state.slice(0,nSt);
-    const r=Array.from({length:nDoF},(_,i)=>ref(i));
-    const u=new Array(nDoF);
-    const e=new Array(nDoF);
-
+    const u=new Array(nDoF),e=new Array(nDoF);
     for(let i=0;i<nDoF;i++){
       const{Kp,Ki,Kd,Tf}=pids[i];
-      const integ=state[nSt+i*2];
-      const zf=state[nSt+i*2+1];
-      const Ke=Kp+Kd/Tf;
-      const uf=Ki*integ-Kd*zf/Tf;
-
+      const integ=state[nSt+i*2],zf=state[nSt+i*2+1];
+      const Ke=Kp+Kd/Tf,uf=Ki*integ-Kd*zf/Tf;
       if(hasAlgLoop[i]){
-        // Compute cy_i = C_i*xp (ignore cross-D for decoupled)
-        let cy=0;
-        for(let j=0;j<nSt;j++)cy+=C[i][j]*xp[j];
-        u[i]=(Ke*(r[i]-cy)+uf)/(1+Ke*D[i][i]);
-        e[i]=r[i]-cy-D[i][i]*u[i];
+        let cy=0;for(let j=0;j<nSt;j++)cy+=C[i][j]*xp[j];
+        u[i]=(Ke*(ref(i)-cy)+uf)/(1+Ke*D[i][i]);
+        e[i]=ref(i)-cy-D[i][i]*u[i];
       }else{
-        // No algebraic loop: compute y first
-        let yi=0;
-        for(let j=0;j<nSt;j++)yi+=C[i][j]*xp[j];
-        e[i]=r[i]-yi;
+        let yi=0;for(let j=0;j<nSt;j++)yi+=C[i][j]*xp[j];
+        e[i]=ref(i)-yi;
         u[i]=Kp*e[i]+Ki*integ+Kd*(e[i]-zf)/Tf;
       }
     }
     const y=plantOut(xp,u);
     return{u,y,e};
   }
-
-  // State derivative
   function deriv(state){
     const ds=new Float64Array(N);
     const{u,e}=computeUandY(state);
-    // Plant derivatives: dxp = A*xp + B*u
     for(let i=0;i<nSt;i++){
       for(let j=0;j<nSt;j++)ds[i]+=A[i][j]*state[j];
       for(let j=0;j<nDoF;j++)ds[i]+=B[i][j]*u[j];
     }
-    // PID state derivatives
     for(let i=0;i<nDoF;i++){
-      const Tf=pids[i].Tf;
-      ds[nSt+i*2]=e[i];           // d(integ) = e
-      ds[nSt+i*2+1]=(e[i]-state[nSt+i*2+1])/Tf; // d(zf) = (e-zf)/Tf
+      ds[nSt+i*2]=e[i];
+      ds[nSt+i*2+1]=(e[i]-state[nSt+i*2+1])/pids[i].Tf;
     }
     return ds;
   }
-
-  const state=new Float64Array(N);
-  const ts=[],ys=Array.from({length:nDoF},()=>[]);
+  const state=new Float64Array(N),ts=[],ys=Array.from({length:nDoF},()=>[]);
   let blow=false;
-
   for(let k=0;k<nPts;k++){
-    const t=k*dt;
-    ts.push(t);
+    const t=k*dt;ts.push(t);
     const{y}=computeUandY(state);
     for(let ch=0;ch<nDoF;ch++)ys[ch].push(y[ch]);
-    // Check blowup
     if(y.some(v=>Math.abs(v)>1e8)){
       blow=true;
       for(let j=k+1;j<nPts;j++){ts.push(j*dt);for(let ch=0;ch<nDoF;ch++)ys[ch].push(NaN);}
       break;
     }
-    // RK4
-    const s1=Array.from(state);
-    const k1=deriv(s1);
+    const s1=Array.from(state),k1=deriv(s1);
     const s2=new Float64Array(N);for(let i=0;i<N;i++)s2[i]=state[i]+dt/2*k1[i];
     const k2=deriv(s2);
     const s3=new Float64Array(N);for(let i=0;i<N;i++)s3[i]=state[i]+dt/2*k2[i];
@@ -444,27 +395,24 @@ Chart.defaults.font.size=11;
 Chart.defaults.font.family="'SF Mono',Menlo,monospace";
 
 function mkChart(id,cfg){
-  if(CS[id]){CS[id].destroy();}
+  if(CS[id])CS[id].destroy();
   CS[id]=new Chart($(id).getContext('2d'),cfg);
   return CS[id];
 }
-
 function scatterOpts(xLab,yLab,logX){
-  return{
-    responsive:true,maintainAspectRatio:false,animation:{duration:0},
+  return{responsive:true,maintainAspectRatio:false,animation:{duration:0},
     plugins:{legend:{display:false},tooltip:{mode:'nearest',intersect:false}},
     scales:{
       x:{type:logX?'logarithmic':'linear',title:{display:true,text:xLab,color:'#a1a1aa'},grid:{color:'#27272a'},ticks:{color:'#52525b'}},
       y:{type:'linear',title:{display:true,text:yLab,color:'#a1a1aa'},grid:{color:'#27272a'},ticks:{color:'#52525b'}}
-    }
-  };
+    }};
 }
 
 /* ========== MAIN UPDATE ========== */
 function updCharts(){
   const v=readSS();
   if(v.err){$('ssDims').textContent=v.err;$('ssDims').classList.add('err');return;}
-  $('ssDims').textContent=`States: ${v.nSt} | Inputs: ${v.nIn} | Outputs: ${v.nOut} | DoF: ${v.nDoF}`;
+  $('ssDims').textContent=`n=${v.nSt}  m=${v.nIn}  p=${v.nOut}  DoF=${v.nDoF}`;
   $('ssDims').classList.remove('err');
 
   const pids=readPids(v.nDoF);
@@ -476,34 +424,26 @@ function updCharts(){
   const excCh=Math.min(+$('excCh').value||0,v.nDoF-1);
   const excAmp=+$('excAmp').value||1;
 
-  // Generate freq array (log-spaced, rad/s)
   const freqs=[];
   const lMin=Math.log10(wMin),lMax=Math.log10(wMax);
   for(let i=0;i<nFreq;i++)freqs.push(Math.pow(10,lMin+i*(lMax-lMin)/(nFreq-1)));
 
-  // Frequency response
   const frAll=mimoFreqResp(v,pids,freqs);
-
-  // Step sim
   const stepData=mimoStepSim(v,pids,tEnd,nPts,excCh,excAmp);
-
-  // Per-channel bode metrics
   const bmAll=frAll.map(fr=>bodeMetrics(freqs,fr.m,fr.ph));
 
   updMetricsBar(bmAll,stepData,excCh);
   updLegend(v.nDoF);
-
   const TP=2*Math.PI;
 
-  // Step chart - all channels overlaid + reference
+  // Step chart
   const stepDS=[{
     label:'Reference',
     data:stepData.t.map(t=>({x:t,y:t>=0?excAmp:0})),
     showLine:true,borderColor:'#52525b88',borderWidth:1,borderDash:[6,3],pointRadius:0,order:99
   }];
   for(let ch=0;ch<v.nDoF;ch++){
-    stepDS.push({
-      label:`Ch ${ch+1}`,
+    stepDS.push({label:`Ch ${ch+1}`,
       data:stepData.t.map((t,i)=>({x:t,y:stepData.ys[ch][i]})),
       showLine:true,borderColor:DOF_COLS[ch%DOF_COLS.length],borderWidth:2,pointRadius:0,order:ch
     });
@@ -511,13 +451,9 @@ function updCharts(){
   mkChart('cStep',{type:'scatter',data:{datasets:stepDS},options:scatterOpts('Time (s)','Amplitude',false)});
 
   // Bode Magnitude
-  const magDS=[{
-    label:'0 dB',data:[{x:fMin,y:0},{x:fMax,y:0}],
-    showLine:true,borderColor:'#52525b44',borderWidth:1,borderDash:[6,3],pointRadius:0,order:99
-  }];
+  const magDS=[{label:'0 dB',data:[{x:fMin,y:0},{x:fMax,y:0}],showLine:true,borderColor:'#52525b44',borderWidth:1,borderDash:[6,3],pointRadius:0,order:99}];
   for(let ch=0;ch<v.nDoF;ch++){
-    magDS.push({
-      label:`L${ch+1}`,
+    magDS.push({label:`L${ch+1}`,
       data:freqs.map((w,i)=>({x:w/TP,y:frAll[ch].m[i]})),
       showLine:true,borderColor:DOF_COLS[ch%DOF_COLS.length],borderWidth:2,pointRadius:0,order:ch
     });
@@ -525,13 +461,9 @@ function updCharts(){
   mkChart('cMag',{type:'scatter',data:{datasets:magDS},options:scatterOpts('Frequency (Hz)','Magnitude (dB)',true)});
 
   // Bode Phase
-  const phDS=[{
-    label:'-180\u00b0',data:[{x:fMin,y:-180},{x:fMax,y:-180}],
-    showLine:true,borderColor:'#52525b44',borderWidth:1,borderDash:[6,3],pointRadius:0,order:99
-  }];
+  const phDS=[{label:'-180\u00b0',data:[{x:fMin,y:-180},{x:fMax,y:-180}],showLine:true,borderColor:'#52525b44',borderWidth:1,borderDash:[6,3],pointRadius:0,order:99}];
   for(let ch=0;ch<v.nDoF;ch++){
-    phDS.push({
-      label:`\u2220L${ch+1}`,
+    phDS.push({label:`\u2220L${ch+1}`,
       data:freqs.map((w,i)=>({x:w/TP,y:frAll[ch].ph[i]})),
       showLine:true,borderColor:DOF_COLS[ch%DOF_COLS.length],borderWidth:2,pointRadius:0,order:ch
     });
@@ -540,19 +472,15 @@ function updCharts(){
 }
 
 function updMetricsBar(bmAll,stepData,excCh){
-  const mb=$('mbar');
-  let h='';
+  const mb=$('mbar');let h='';
   if(curTab==='step'){
     if(stepData.unstable){h='<div class="met"><span class="met-v b">UNSTABLE</span></div>';}
     else{
-      // Show metrics for excitation channel
-      const ys=stepData.ys[excCh];
-      const valid=ys.filter(v=>isFinite(v));
+      const ys=stepData.ys[excCh],valid=ys.filter(v=>isFinite(v));
       if(valid.length>20){
         const tail=valid.slice(-Math.max(Math.floor(valid.length*.1),5));
         const fv=tail.reduce((a,b)=>a+b,0)/tail.length;
-        const amp=+$('excAmp').value||1;
-        const pk=Math.max(...valid);
+        const amp=+$('excAmp').value||1,pk=Math.max(...valid);
         const os=fv>0?Math.max(0,(pk-fv)/fv*100):0;
         const sse=Math.abs(amp)>1e-10?Math.abs(1-fv/amp):0;
         h+=met('Ch',(excCh+1).toString(),'');
@@ -562,10 +490,8 @@ function updMetricsBar(bmAll,stepData,excCh){
       }
     }
   }else{
-    // Bode: show per-channel GM/PM
     for(let ch=0;ch<bmAll.length;ch++){
-      const bm=bmAll[ch];
-      const pre=`Ch${ch+1} `;
+      const bm=bmAll[ch],pre=`Ch${ch+1} `;
       h+=met(pre+'GM',bm.gm!==undefined?bm.gm.toFixed(1)+' dB':'\u221e',bm.gm===undefined||bm.gm>6?'g':bm.gm>0?'w':'b');
       h+=met(pre+'PM',bm.pm!==undefined?bm.pm.toFixed(1)+'\u00b0':'--',bm.pm===undefined?'':bm.pm>45?'g':bm.pm>0?'w':'b');
     }
@@ -576,50 +502,34 @@ function met(l,v,c){return`<div class="met"><span class="met-l">${l}</span><span
 
 function updLegend(nDoF){
   let h='';
-  for(let ch=0;ch<nDoF;ch++){
+  for(let ch=0;ch<nDoF;ch++)
     h+=`<div class="leg-item"><div class="swatch" style="background:${DOF_COLS[ch%DOF_COLS.length]}"></div>Channel ${ch+1}</div>`;
-  }
   $('legendBar').innerHTML=h;
 }
 
 /* ========== UI LOGIC ========== */
-const $=id=>document.getElementById(id);
 let curTab='step',updTimer,curNDoF=0;
 
-function tP(h){
-  const b=h.nextElementSibling;
-  b.classList.toggle('hide');
-  h.classList.toggle('collapsed');
-}
+function tP(h){const b=h.nextElementSibling;b.classList.toggle('hide');h.classList.toggle('collapsed');}
 function tglS(el){el.classList.toggle('on');sched();}
-
-function readSS(){
-  const A=parseMat($('ssA').value),B=parseMat($('ssB').value);
-  const C=parseMat($('ssC').value),D=parseMat($('ssD').value);
-  return validateSS(A,B,C,D);
-}
 
 function readPids(nDoF){
   const pids=[];
   for(let i=0;i<nDoF;i++){
     const on=$('pidTgl'+i);
-    if(!on||!on.classList.contains('on')){
-      pids.push({Kp:1,Ki:0,Kd:0,Tf:0.01});continue;
-    }
+    if(!on||!on.classList.contains('on')){pids.push({Kp:1,Ki:0,Kd:0,Tf:0.01});continue;}
     const Kp=+($('pidKp'+i)?.value)||1;
     const fi=+($('pidFi'+i)?.value)||0;
     const fd=+($('pidFd'+i)?.value)||0;
     const Tf=Math.max(+($('pidTf'+i)?.value)||0.01,1e-6);
-    const wi=2*Math.PI*fi,wd=2*Math.PI*fd;
-    const Ki=Kp*wi;
-    const Kd=wd>1e-15?Kp/wd:0;
+    const Ki=Kp*2*Math.PI*fi;
+    const Kd=(2*Math.PI*fd)>1e-15?Kp/(2*Math.PI*fd):0;
     pids.push({Kp,Ki,Kd,Tf});
   }
   return pids;
 }
 
 function buildDofUI(nDoF){
-  // Preserve existing values
   const saved=[];
   for(let i=0;i<curNDoF;i++){
     saved.push({
@@ -650,12 +560,9 @@ function buildDofUI(nDoF){
     </div>`;
   }
   $('pidBody').innerHTML=h;
-
-  // Update excitation channel selector
   let opts='';
   for(let i=0;i<nDoF;i++)opts+=`<option value="${i}">Ch ${i+1}</option>`;
   $('excCh').innerHTML=opts;
-
   curNDoF=nDoF;
   attachPidListeners();
 }
@@ -677,11 +584,16 @@ function sched(){clearTimeout(updTimer);updTimer=setTimeout(update,100);}
 
 function update(){
   try{
-    // Check if nDoF changed
     const v=readSS();
     if(!v.err&&v.nDoF!==curNDoF)buildDofUI(v.nDoF);
     updCharts();
   }catch(e){console.error('Update error:',e);}
+}
+
+function attachMatListeners(){
+  document.querySelectorAll('#matSection input').forEach(el=>{
+    el.addEventListener('input',()=>{$('ssExample').value='';sched();});
+  });
 }
 
 function attachPidListeners(){
@@ -692,35 +604,46 @@ function attachPidListeners(){
 }
 
 function attachListeners(){
-  document.querySelectorAll('.sidebar input[type=number],.sidebar select').forEach(el=>{
-    el.addEventListener('input',sched);
+  ['simTend','simFmin','simFmax','excAmp'].forEach(id=>{
+    $(id).addEventListener('input',sched);
   });
-  document.querySelectorAll('.sidebar textarea').forEach(el=>{
-    el.addEventListener('input',()=>{$('ssExample').value='';sched();});
+  $('excCh').addEventListener('change',sched);
+  $('ssExample').addEventListener('change',loadExample);
+  ['ssN','ssM','ssP'].forEach(id=>{
+    $(id).addEventListener('change',()=>{$('ssExample').value='';buildMatGrids();sched();});
   });
 }
 
 /* ========== EXAMPLES ========== */
 function loadExample(){
   const ex=$('ssExample').value;
-  if(ex==='2dof'){
-    $('ssA').value='0 1 0 0; -1 -1 0 0; 0 0 0 1; 0 0 -4 -1.2';
-    $('ssB').value='0 0; 1 0; 0 0; 0 1';
-    $('ssC').value='1 0 0 0; 0 0 4 0';
-    $('ssD').value='0 0; 0 0';
+  if(ex==='2dof1'){
+    $('ssN').value='2';$('ssM').value='2';$('ssP').value='2';
+    buildMatGrids();
+    setMat('a',[[-1,0],[0,-2]]);
+    setMat('b',[[1,0],[0,1]]);
+    setMat('c',[[1,0],[0,1]]);
+    setMat('d',[[0,0],[0,0]]);
+  }else if(ex==='siso2'){
+    $('ssN').value='2';$('ssM').value='1';$('ssP').value='1';
+    buildMatGrids();
+    setMat('a',[[0,1],[-4,-1]]);
+    setMat('b',[[0],[1]]);
+    setMat('c',[[1,0]]);
+    setMat('d',[[0]]);
   }else if(ex==='3dof'){
-    $('ssA').value='0 1 0 0 0 0; -1 -0.5 0 0 0 0; 0 0 0 1 0 0; 0 0 -4 -1 0 0; 0 0 0 0 -10 0; 0 0 0 0 0 -20';
-    $('ssB').value='0 0 0; 1 0 0; 0 0 0; 0 1 0; 0 0 10; 0 0 20';
-    $('ssC').value='1 0 0 0 0 0; 0 0 1 0 0 0; 0 0 0 0 1 1';
-    $('ssD').value='0';
+    $('ssN').value='3';$('ssM').value='3';$('ssP').value='3';
+    buildMatGrids();
+    setMat('a',[[-1,0,0],[0,-2,0],[0,0,-5]]);
+    setMat('b',[[1,0,0],[0,1,0],[0,0,1]]);
+    setMat('c',[[1,0,0],[0,1,0],[0,0,1]]);
+    setMat('d',[[0,0,0],[0,0,0],[0,0,0]]);
   }
   sched();
 }
 
 // PWA service worker
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
 // Init
 attachListeners();
