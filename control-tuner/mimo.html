@@ -123,25 +123,41 @@ header .sub{font-size:11px;color:var(--t2)}
 <div class="pnl-b" id="pidBody"></div>
 </div>
 
-<!-- Step excitation -->
-<div class="pnl"><div class="pnl-h" onclick="tP(this)"><h3>Step Excitation</h3><span class="arr">&#9660;</span></div>
+<!-- Excitation -->
+<div class="pnl"><div class="pnl-h" onclick="tP(this)"><h3>Excitation</h3><span class="arr">&#9660;</span></div>
 <div class="pnl-b">
 <div class="pr"><label>Channel</label><select id="excCh"></select></div>
 <div class="pr"><label>Amplitude</label><input type="number" id="excAmp" value="1" step="0.1"></div>
+</div></div>
+
+<!-- Time Simulator -->
+<div class="pnl"><div class="pnl-h" onclick="tP(this)"><h3>Time Simulator</h3><span class="arr">&#9660;</span></div>
+<div class="pnl-b">
+<div class="pr"><label>Signal</label><select id="simSigType"><option value="step">Step</option><option value="ramp">Ramp</option><option value="sine">Sine</option><option value="square">Square</option><option value="sawtooth">Sawtooth</option></select></div>
+<div class="pr"><label id="lblSigAmp">Amplitude</label><input type="number" id="simSigAmp" value="1" step="0.1"></div>
+<div class="pr" id="rowSigFreq" style="display:none"><label>Freq (Hz)</label><input type="number" id="simSigFreq" value="1" min="0.001" step="0.1"></div>
+<div class="pr" id="rowSigDelay"><label>Delay (s)</label><input type="number" id="simSigDelay" value="0" min="0" step="0.1"></div>
+<div class="pr" id="rowSigDuty" style="display:none"><label>Duty (%)</label><input type="number" id="simSigDuty" value="50" min="1" max="99" step="5"></div>
+<div class="pr"><label>Offset</label><input type="number" id="simSigOff" value="0" step="0.1"></div>
+<div class="pr"><label>x&#x2080;</label><input type="text" id="simX0" value="0" placeholder="0, 0, ..."></div>
 </div></div>
 
 </aside>
 <main class="plot-area">
 <div class="tabs">
 <button class="tab act" data-tab="step" onclick="setTab('step',this)">Step Response</button>
+<button class="tab" data-tab="impulse" onclick="setTab('impulse',this)">Impulse Response</button>
 <button class="tab" data-tab="bode" onclick="setTab('bode',this)">Bode Plot</button>
+<button class="tab" data-tab="sim" onclick="setTab('sim',this)">Simulator</button>
 </div>
 <div class="mbar" id="mbar"></div>
 <div class="legend" id="legendBar"></div>
 <div class="charts">
 <div class="chwrap" id="wStep"><canvas id="cStep"></canvas></div>
+<div class="chwrap hide" id="wImpulse"><canvas id="cImpulse"></canvas></div>
 <div class="chwrap hide" id="wMag"><canvas id="cMag"></canvas></div>
 <div class="chwrap hide" id="wPhase"><canvas id="cPhase"></canvas></div>
+<div class="chwrap hide" id="wSim"><canvas id="cSim"></canvas></div>
 </div>
 </main>
 </div>
@@ -166,7 +182,6 @@ const $=id=>document.getElementById(id);
 
 function buildMatGrids(){
   const n=+$('ssN').value,m=+$('ssM').value,p=+$('ssP').value;
-  // Save current input values by ID
   const saved={};
   document.querySelectorAll('#matSection input').forEach(el=>{saved[el.id]=+el.value;});
   let h='';
@@ -314,11 +329,12 @@ function bodeMetrics(freqs,m,ph){
   return{gcf,pm,pcf,gm};
 }
 
-/* ========== CLOSED-LOOP STEP SIMULATION (RK4) ========== */
-function mimoStepSim(ss,pids,tEnd,nPts,excCh,excAmp){
+/* ========== GENERAL MIMO TIME-DOMAIN SIMULATION (RK4) ========== */
+// refFn(ch, t) returns reference for channel ch at time t
+// x0 optional initial plant state vector
+function mimoTimeSim(ss,pids,tEnd,nPts,refFn,x0){
   const{A,B,C,D,nSt,nDoF}=ss;
   const nPid=nDoF*2,N=nSt+nPid,dt=tEnd/(nPts-1);
-  function ref(ch){return ch===excCh?excAmp:0;}
   function plantOut(xp,u){
     const y=new Array(nDoF);
     for(let i=0;i<nDoF;i++){
@@ -329,29 +345,30 @@ function mimoStepSim(ss,pids,tEnd,nPts,excCh,excAmp){
     return y;
   }
   const hasAlgLoop=Array.from({length:nDoF},(_,i)=>Math.abs(D[i][i])>1e-15);
-  function computeUandY(state){
+  function computeUandY(state,t){
     const xp=state.slice(0,nSt);
     const u=new Array(nDoF),e=new Array(nDoF);
     for(let i=0;i<nDoF;i++){
       const{Kp,Ki,Kd,Tf}=pids[i];
       const integ=state[nSt+i*2],zf=state[nSt+i*2+1];
       const Ke=Kp+Kd/Tf,uf=Ki*integ-Kd*zf/Tf;
+      const ri=refFn(i,t);
       if(hasAlgLoop[i]){
         let cy=0;for(let j=0;j<nSt;j++)cy+=C[i][j]*xp[j];
-        u[i]=(Ke*(ref(i)-cy)+uf)/(1+Ke*D[i][i]);
-        e[i]=ref(i)-cy-D[i][i]*u[i];
+        u[i]=(Ke*(ri-cy)+uf)/(1+Ke*D[i][i]);
+        e[i]=ri-cy-D[i][i]*u[i];
       }else{
         let yi=0;for(let j=0;j<nSt;j++)yi+=C[i][j]*xp[j];
-        e[i]=ref(i)-yi;
+        e[i]=ri-yi;
         u[i]=Kp*e[i]+Ki*integ+Kd*(e[i]-zf)/Tf;
       }
     }
     const y=plantOut(xp,u);
     return{u,y,e};
   }
-  function deriv(state){
+  function deriv(state,t){
     const ds=new Float64Array(N);
-    const{u,e}=computeUandY(state);
+    const{u,e}=computeUandY(state,t);
     for(let i=0;i<nSt;i++){
       for(let j=0;j<nSt;j++)ds[i]+=A[i][j]*state[j];
       for(let j=0;j<nDoF;j++)ds[i]+=B[i][j]*u[j];
@@ -362,27 +379,60 @@ function mimoStepSim(ss,pids,tEnd,nPts,excCh,excAmp){
     }
     return ds;
   }
-  const state=new Float64Array(N),ts=[],ys=Array.from({length:nDoF},()=>[]);
+  const state=new Float64Array(N);
+  if(x0)for(let i=0;i<nSt&&i<x0.length;i++)state[i]=x0[i];
+  const ts=[],ys=Array.from({length:nDoF},()=>[]),rs=Array.from({length:nDoF},()=>[]);
   let blow=false;
   for(let k=0;k<nPts;k++){
     const t=k*dt;ts.push(t);
-    const{y}=computeUandY(state);
+    for(let ch=0;ch<nDoF;ch++)rs[ch].push(refFn(ch,t));
+    const{y}=computeUandY(state,t);
     for(let ch=0;ch<nDoF;ch++)ys[ch].push(y[ch]);
     if(y.some(v=>Math.abs(v)>1e8)){
       blow=true;
-      for(let j=k+1;j<nPts;j++){ts.push(j*dt);for(let ch=0;ch<nDoF;ch++)ys[ch].push(NaN);}
+      for(let j=k+1;j<nPts;j++){
+        ts.push(j*dt);
+        for(let ch=0;ch<nDoF;ch++){ys[ch].push(NaN);rs[ch].push(refFn(ch,j*dt));}
+      }
       break;
     }
-    const s1=Array.from(state),k1=deriv(s1);
+    const k1=deriv(state,t);
     const s2=new Float64Array(N);for(let i=0;i<N;i++)s2[i]=state[i]+dt/2*k1[i];
-    const k2=deriv(s2);
+    const k2=deriv(s2,t+dt/2);
     const s3=new Float64Array(N);for(let i=0;i<N;i++)s3[i]=state[i]+dt/2*k2[i];
-    const k3=deriv(s3);
+    const k3=deriv(s3,t+dt/2);
     const s4=new Float64Array(N);for(let i=0;i<N;i++)s4[i]=state[i]+dt*k3[i];
-    const k4=deriv(s4);
+    const k4=deriv(s4,t+dt);
     for(let i=0;i<N;i++)state[i]+=dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
   }
-  return{t:ts,ys,unstable:blow};
+  return{t:ts,ys,rs,unstable:blow};
+}
+
+/* ========== SIGNAL BUILDER ========== */
+function buildInputFn(){
+  const type=$('simSigType').value,amp=+$('simSigAmp').value,off=+$('simSigOff').value;
+  const freq=Math.max(+$('simSigFreq').value||1,1e-6),td=+$('simSigDelay').value,duty=(+$('simSigDuty').value||50)/100;
+  switch(type){
+    case'step':return t=>off+(t>=td?amp:0);
+    case'ramp':return t=>off+(t>=td?amp*(t-td):0);
+    case'sine':return t=>off+amp*Math.sin(2*Math.PI*freq*t);
+    case'square':return t=>off+amp*(((freq*t)%1+1)%1<duty?1:-1);
+    case'sawtooth':return t=>off+amp*(2*(((freq*t)%1+1)%1)-1);
+    default:return()=>off;
+  }
+}
+function parseX0(){
+  const s=$('simX0').value.trim();
+  if(!s||s==='0')return[];
+  return s.split(',').map(v=>+v.trim()).filter(v=>isFinite(v));
+}
+function updSimUI(){
+  const t=$('simSigType').value;
+  const hasFreq=t==='sine'||t==='square'||t==='sawtooth';
+  $('rowSigFreq').style.display=hasFreq?'flex':'none';
+  $('rowSigDelay').style.display=!hasFreq?'flex':'none';
+  $('rowSigDuty').style.display=t==='square'?'flex':'none';
+  $('lblSigAmp').textContent=t==='ramp'?'Slope (/s)':'Amplitude';
 }
 
 /* ========== CHART MANAGEMENT ========== */
@@ -423,16 +473,28 @@ function updCharts(){
   const nPts=2000,nFreq=500;
   const excCh=Math.min(+$('excCh').value||0,v.nDoF-1);
   const excAmp=+$('excAmp').value||1;
+  const dt=tEnd/(nPts-1);
 
   const freqs=[];
   const lMin=Math.log10(wMin),lMax=Math.log10(wMax);
   for(let i=0;i<nFreq;i++)freqs.push(Math.pow(10,lMin+i*(lMax-lMin)/(nFreq-1)));
 
+  // Frequency response
   const frAll=mimoFreqResp(v,pids,freqs);
-  const stepData=mimoStepSim(v,pids,tEnd,nPts,excCh,excAmp);
   const bmAll=frAll.map(fr=>bodeMetrics(freqs,fr.m,fr.ph));
 
-  updMetricsBar(bmAll,stepData,excCh);
+  // Step response
+  const stepData=mimoTimeSim(v,pids,tEnd,nPts,(ch,t)=>ch===excCh?excAmp:0);
+
+  // Impulse response (narrow pulse approximation: width=dt, amplitude=excAmp/dt)
+  const impAmp=excAmp/dt;
+  const impData=mimoTimeSim(v,pids,tEnd,nPts,(ch,t)=>ch===excCh&&t<dt*1.5?impAmp:0);
+
+  // Custom simulator
+  const uFn=buildInputFn(),x0=parseX0();
+  const simData=mimoTimeSim(v,pids,tEnd,nPts,(ch,t)=>ch===excCh?uFn(t):0,x0);
+
+  updMetricsBar(bmAll,stepData,impData,simData,excCh,excAmp);
   updLegend(v.nDoF);
   const TP=2*Math.PI;
 
@@ -449,6 +511,19 @@ function updCharts(){
     });
   }
   mkChart('cStep',{type:'scatter',data:{datasets:stepDS},options:scatterOpts('Time (s)','Amplitude',false)});
+
+  // Impulse chart
+  const impDS=[{
+    label:'Zero',data:[{x:0,y:0},{x:tEnd,y:0}],
+    showLine:true,borderColor:'#52525b44',borderWidth:1,borderDash:[6,3],pointRadius:0,order:99
+  }];
+  for(let ch=0;ch<v.nDoF;ch++){
+    impDS.push({label:`Ch ${ch+1}`,
+      data:impData.t.map((t,i)=>({x:t,y:impData.ys[ch][i]})),
+      showLine:true,borderColor:DOF_COLS[ch%DOF_COLS.length],borderWidth:2,pointRadius:0,order:ch
+    });
+  }
+  mkChart('cImpulse',{type:'scatter',data:{datasets:impDS},options:scatterOpts('Time (s)','Amplitude',false)});
 
   // Bode Magnitude
   const magDS=[{label:'0 dB',data:[{x:fMin,y:0},{x:fMax,y:0}],showLine:true,borderColor:'#52525b44',borderWidth:1,borderDash:[6,3],pointRadius:0,order:99}];
@@ -469,9 +544,23 @@ function updCharts(){
     });
   }
   mkChart('cPhase',{type:'scatter',data:{datasets:phDS},options:scatterOpts('Frequency (Hz)','Phase (\u00b0)',true)});
+
+  // Simulator chart - input + all outputs
+  const simDS=[{
+    label:'Input r(t)',
+    data:simData.t.map((t,i)=>({x:t,y:simData.rs[excCh][i]})),
+    showLine:true,borderColor:'#3b82f688',borderWidth:1,borderDash:[6,3],pointRadius:0,order:99
+  }];
+  for(let ch=0;ch<v.nDoF;ch++){
+    simDS.push({label:`y${ch+1}(t)`,
+      data:simData.t.map((t,i)=>({x:t,y:simData.ys[ch][i]})),
+      showLine:true,borderColor:DOF_COLS[ch%DOF_COLS.length],borderWidth:2,pointRadius:0,order:ch
+    });
+  }
+  mkChart('cSim',{type:'scatter',data:{datasets:simDS},options:scatterOpts('Time (s)','Amplitude',false)});
 }
 
-function updMetricsBar(bmAll,stepData,excCh){
+function updMetricsBar(bmAll,stepData,impData,simData,excCh,excAmp){
   const mb=$('mbar');let h='';
   if(curTab==='step'){
     if(stepData.unstable){h='<div class="met"><span class="met-v b">UNSTABLE</span></div>';}
@@ -480,13 +569,31 @@ function updMetricsBar(bmAll,stepData,excCh){
       if(valid.length>20){
         const tail=valid.slice(-Math.max(Math.floor(valid.length*.1),5));
         const fv=tail.reduce((a,b)=>a+b,0)/tail.length;
-        const amp=+$('excAmp').value||1,pk=Math.max(...valid);
+        const pk=Math.max(...valid);
         const os=fv>0?Math.max(0,(pk-fv)/fv*100):0;
-        const sse=Math.abs(amp)>1e-10?Math.abs(1-fv/amp):0;
+        const sse=Math.abs(excAmp)>1e-10?Math.abs(1-fv/excAmp):0;
         h+=met('Ch',(excCh+1).toString(),'');
         h+=met('OS',os.toFixed(1)+'%',os<5?'g':os<20?'w':'b');
         h+=met('SS Err',sse.toFixed(4),sse<.01?'g':sse<.05?'w':'b');
         h+=met('Final',fv.toFixed(4),'');
+      }
+    }
+  }else if(curTab==='impulse'){
+    if(impData.unstable){h='<div class="met"><span class="met-v b">UNSTABLE</span></div>';}
+    else h+=`<div class="met"><span class="met-l">Closed-loop impulse response &middot; Ch ${excCh+1}</span></div>`;
+  }else if(curTab==='sim'){
+    if(simData.unstable){h='<div class="met"><span class="met-v b">UNSTABLE</span></div>';}
+    else{
+      const ys=simData.ys[excCh],valid=ys.filter(v=>isFinite(v));
+      if(valid.length>5){
+        const pk=Math.max(...valid),mn=Math.min(...valid),fv=valid[valid.length-1];
+        const ufv=simData.rs[excCh][simData.rs[excCh].length-1];
+        const sse=Math.abs(fv-ufv);
+        h+=met('Ch',(excCh+1).toString(),'');
+        h+=met('Peak',pk.toFixed(3),'');
+        h+=met('Min',mn.toFixed(3),'');
+        h+=met('Final',fv.toFixed(4),'');
+        h+=met('SS Err',sse.toFixed(4),sse<.01?'g':sse<.05?'w':'b');
       }
     }
   }else{
@@ -574,8 +681,10 @@ function setTab(tab,btn){
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('act'));
   btn.classList.add('act');
   $('wStep').classList.toggle('hide',tab!=='step');
+  $('wImpulse').classList.toggle('hide',tab!=='impulse');
   $('wMag').classList.toggle('hide',tab!=='bode');
   $('wPhase').classList.toggle('hide',tab!=='bode');
+  $('wSim').classList.toggle('hide',tab!=='sim');
   setTimeout(()=>{Object.values(CS).forEach(c=>c.resize());},50);
   update();
 }
@@ -604,11 +713,13 @@ function attachPidListeners(){
 }
 
 function attachListeners(){
-  ['simTend','simFmin','simFmax','excAmp'].forEach(id=>{
+  ['simTend','simFmin','simFmax','excAmp','simSigAmp','simSigFreq','simSigDelay','simSigDuty','simSigOff'].forEach(id=>{
     $(id).addEventListener('input',sched);
   });
   $('excCh').addEventListener('change',sched);
   $('ssExample').addEventListener('change',loadExample);
+  $('simSigType').addEventListener('change',()=>{updSimUI();sched();});
+  $('simX0').addEventListener('input',sched);
   ['ssN','ssM','ssP'].forEach(id=>{
     $(id).addEventListener('change',()=>{$('ssExample').value='';buildMatGrids();sched();});
   });
@@ -647,6 +758,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catc
 
 // Init
 attachListeners();
+updSimUI();
 loadExample();
 </script>
 </body>
