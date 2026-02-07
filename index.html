@@ -128,7 +128,7 @@
       TAGLINE: 'Building things that work (mostly)',
 
       // Repos to exclude (by name)
-      EXCLUDE_REPOS: ['lab-inventory', 'resistor-colorcode-gen', 'datasheet-search', 'model-library', 'rlc-calculator', 'biquad-pwa', 'jk-bms-app', 'pages'], // Exclude embedded apps and the pages repo itself
+      EXCLUDE_REPOS: ['lab-inventory', 'resistor-colorcode-gen', 'datasheet-search', 'model-library', 'rlc-calculator', 'biquad-pwa', 'jk-bms-app', 'pq-bms-app', 'engineering-calcs-app', 'pages'], // Exclude embedded apps and the pages repo itself
 
       // Only show repos with these topics (leave empty to show all)
       FILTER_TOPICS: [],
@@ -220,6 +220,24 @@
           icon: 'BatteryCharging',
           url: 'https://arnoutzw.github.io/jk-bms-app/',
           description: 'JK BMS battery monitor',
+          isLocal: false,
+          fullscreen: true
+        },
+        {
+          id: 'pq-bms-app',
+          name: 'PQ BMS Monitor',
+          icon: 'Battery',
+          url: 'https://arnoutzw.github.io/pq-bms-app/',
+          description: 'Monitor Powerqueen LiFePO4 batteries via Bluetooth',
+          isLocal: false,
+          fullscreen: true
+        },
+        {
+          id: 'engineering-calcs-app',
+          name: 'Engineering Calculators',
+          icon: 'Wrench',
+          url: 'https://arnoutzw.github.io/engineering-calcs-app/',
+          description: 'Tribology, bearings, fatigue & machine design calculators',
           isLocal: false,
           fullscreen: true
         }
