@@ -249,6 +249,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-07', changes: 'Add starred repos tab to main page' },
       { hash: 'HEAD', date: '2026-02-07', changes: 'Sort apps by engineering lifecycle and add Serial Terminal' },
       { hash: '005d933', date: '2026-02-06', changes: 'Restyle Engineering Calculators to match portfolio\'s dark zinc/amber theme' },
       { hash: 'e6a46b3', date: '2026-02-06', changes: 'Add Engineering Calculators to main page integrated apps' },
@@ -1012,6 +1013,7 @@
       const allTabs = [
         { id: 'projects', icon: 'FolderGit2', name: 'Original Projects', locked: true },
         { id: 'forked-projects', icon: 'GitFork', name: 'Forked Projects' },
+        { id: 'starred', icon: 'Star', name: 'Starred' },
         ...CONFIG.INTEGRATED_APPS.map(app => ({ id: app.id, icon: app.icon, name: app.name }))
       ];
 
@@ -1148,7 +1150,9 @@
       const [sortBy, setSortBy] = useState('updated');
       const [selectedRepo, setSelectedRepo] = useState(null);
       const [username, setUsername] = useState(CONFIG.GITHUB_USERNAME);
-      const [activeView, setActiveView] = useState('projects'); // 'projects', 'forked-projects', or app id
+      const [activeView, setActiveView] = useState('projects'); // 'projects', 'forked-projects', 'starred', or app id
+      const [starredRepos, setStarredRepos] = useState([]);
+      const [loadingStarred, setLoadingStarred] = useState(false);
       const [forkFilter, setForkFilter] = useState('all'); // 'all', 'contributed', 'not-contributed'
       const [forkContributions, setForkContributions] = useState({}); // { repoFullName: boolean }
       const [loadingContributions, setLoadingContributions] = useState(false);
@@ -1181,9 +1185,9 @@
       // If the active view is now hidden, fall back to projects
       useEffect(() => {
         if (activeView === 'projects') return;
-        if (activeView === 'forked-projects' && hiddenTabs.includes('forked-projects')) {
+        if ((activeView === 'forked-projects' || activeView === 'starred') && hiddenTabs.includes(activeView)) {
           setActiveView('projects');
-        } else if (activeView !== 'forked-projects') {
+        } else if (activeView !== 'forked-projects' && activeView !== 'starred') {
           const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
           if (app && hiddenTabs.includes(app.id)) setActiveView('projects');
         }
@@ -1269,18 +1273,37 @@
         checkContributions();
       }, [activeView, repos, username]);
 
+      // Fetch starred repos
+      useEffect(() => {
+        if (activeView !== 'starred' || starredRepos.length > 0) return;
+        setLoadingStarred(true);
+        const fetchStarred = async () => {
+          try {
+            const response = await fetch(
+              `https://api.github.com/users/${username}/starred?per_page=${CONFIG.MAX_REPOS}&sort=updated`
+            );
+            if (response.ok) {
+              setStarredRepos(await response.json());
+            }
+          } catch { /* ignore */ }
+          finally { setLoadingStarred(false); }
+        };
+        fetchStarred();
+      }, [activeView, username]);
+
       // Get languages
       const languages = useMemo(() => {
-        const langs = [...new Set(repos.map(r => r.language).filter(Boolean))];
+        const source = activeView === 'starred' ? starredRepos : repos;
+        const langs = [...new Set(source.map(r => r.language).filter(Boolean))];
         return ['all', ...langs.sort()];
-      }, [repos]);
+      }, [repos, starredRepos, activeView]);
 
       // Filter and sort
       const filteredRepos = useMemo(() => {
-        let filtered = repos;
+        let filtered = activeView === 'starred' ? starredRepos : repos;
 
         // Hide hidden repos for non-admin users
-        if (!isAdmin) {
+        if (!isAdmin && activeView !== 'starred') {
           filtered = filtered.filter(r => !hiddenRepos.includes(r.name));
         }
 
@@ -1305,7 +1328,7 @@
           } else if (forkFilter === 'not-contributed') {
             filtered = filtered.filter(r => forkContributions[r.full_name] === false);
           }
-        } else {
+        } else if (activeView !== 'starred') {
           filtered = filtered.filter(r => !r.fork);
         }
 
@@ -1316,7 +1339,7 @@
             default: return new Date(b.updated_at) - new Date(a.updated_at);
           }
         });
-      }, [repos, searchTerm, selectedLanguage, activeView, sortBy, isAdmin, hiddenRepos, forkFilter, forkContributions]);
+      }, [repos, starredRepos, searchTerm, selectedLanguage, activeView, sortBy, isAdmin, hiddenRepos, forkFilter, forkContributions]);
 
       return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -1350,6 +1373,10 @@
                   {!hiddenTabs.includes('forked-projects') && (
                     <NavTab active={activeView === 'forked-projects'} icon="GitFork" label="Forked Projects"
                             onClick={() => setActiveView('forked-projects')} />
+                  )}
+                  {!hiddenTabs.includes('starred') && (
+                    <NavTab active={activeView === 'starred'} icon="Star" label="Starred"
+                            onClick={() => setActiveView('starred')} />
                   )}
                   {visibleApps.map(app => (
                     <NavTab key={app.id} active={activeView === app.id} icon={app.icon} label={app.name}
@@ -1391,8 +1418,8 @@
             </div>
           </header>
 
-          {/* Filters - show in projects and forked-projects views */}
-          {(activeView === 'projects' || activeView === 'forked-projects') && !loading && !error && (
+          {/* Filters - show in projects, forked-projects, and starred views */}
+          {(activeView === 'projects' || activeView === 'forked-projects' || activeView === 'starred') && !loading && !error && !loadingStarred && (
             <div className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-[61px] z-30">
               <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -1443,7 +1470,7 @@
           )}
 
           {/* Fullscreen App View - rendered outside main container */}
-          {activeView !== 'projects' && activeView !== 'forked-projects' && (() => {
+          {activeView !== 'projects' && activeView !== 'forked-projects' && activeView !== 'starred' && (() => {
             const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
             if (app && app.requiresAdmin && !isAdmin) return null;
             return app && app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} /> : null;
@@ -1452,19 +1479,19 @@
           {/* Main */}
           <main className="max-w-7xl mx-auto px-4 py-6 relative">
             {/* Embedded App View (non-fullscreen) */}
-            {activeView !== 'projects' && activeView !== 'forked-projects' && (() => {
+            {activeView !== 'projects' && activeView !== 'forked-projects' && activeView !== 'starred' && (() => {
               const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
               if (app && app.requiresAdmin && !isAdmin) return null;
               return app && !app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} /> : null;
             })()}
 
             {/* Projects View */}
-            {(activeView === 'projects' || activeView === 'forked-projects') && (
+            {(activeView === 'projects' || activeView === 'forked-projects' || activeView === 'starred') && (
               <>
-                {loading ? (
+                {(activeView === 'starred' ? loadingStarred : loading) ? (
                   <div className="flex flex-col items-center justify-center py-20">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-amber-500 mb-4"></div>
-                    <p className="font-mono text-zinc-400">Fetching projects from GitHub...</p>
+                    <p className="font-mono text-zinc-400">{activeView === 'starred' ? 'Fetching starred repos...' : 'Fetching projects from GitHub...'}</p>
                   </div>
                 ) : error ? (
                   <div className="text-center py-20">
@@ -1477,14 +1504,15 @@
                 ) : (
                   <>
                     <div className="mb-6 font-mono text-sm text-zinc-500">
-                      <span className="text-green-400">→</span> Found <span className="text-amber-400">{filteredRepos.length}</span> projects
+                      <span className="text-green-400">→</span> Found <span className="text-amber-400">{filteredRepos.length}</span> {activeView === 'starred' ? 'starred repos' : 'projects'}
                       {searchTerm && <span> matching "{searchTerm}"</span>}
                     </div>
 
                     {filteredRepos.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredRepos.map(repo => (
-                          <ProjectCard key={repo.id} repo={repo} onClick={() => setSelectedRepo(repo)}
+                          <ProjectCard key={repo.id} repo={repo}
+                                       onClick={() => activeView === 'starred' ? window.open(repo.html_url, '_blank') : setSelectedRepo(repo)}
                                        isAdmin={isAdmin} isHidden={hiddenRepos.includes(repo.name)}
                                        onToggleHide={toggleHideRepo} />
                         ))}
