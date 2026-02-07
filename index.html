@@ -221,6 +221,15 @@
           description: 'Search component datasheets',
           isLocal: false,
           fullscreen: true
+        },
+        {
+          id: 'serial-app',
+          name: 'Serial Terminal',
+          icon: 'Terminal',
+          url: 'https://arnoutzw.github.io/serial-app/',
+          description: 'Web serial terminal for communicating with devices',
+          isLocal: false,
+          fullscreen: true
         }
       ],
     };
@@ -234,6 +243,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-07', changes: 'Add Serial Terminal app to integrated apps' },
       { hash: '005d933', date: '2026-02-06', changes: 'Restyle Engineering Calculators to match portfolio\'s dark zinc/amber theme' },
       { hash: 'e6a46b3', date: '2026-02-06', changes: 'Add Engineering Calculators to main page integrated apps' },
       { hash: '1a93eaf', date: '2026-02-06', changes: 'Update print label CSS to specify 40x30mm label size' },
