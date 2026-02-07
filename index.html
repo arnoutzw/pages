@@ -128,7 +128,7 @@
       TAGLINE: 'Building things that work (mostly)',
 
       // Repos to exclude (by name)
-      EXCLUDE_REPOS: ['lab-inventory', 'label-designer', 'resistor-colorcode-gen', 'datasheet-search', 'model-library', 'rlc-calculator', 'biquad-pwa', 'engcalc-pwa', 'pages'], // Exclude embedded apps and the pages repo itself
+      EXCLUDE_REPOS: ['lab-inventory', 'label-designer', 'resistor-colorcode-gen', 'datasheet-search', 'model-library', 'rlc-calculator', 'biquad-pwa', 'engcalc-pwa', 'control-tuner', 'pages'], // Exclude embedded apps and the pages repo itself
 
       // Only show repos with these topics (leave empty to show all)
       FILTER_TOPICS: [],
@@ -229,6 +229,15 @@
           icon: 'Wrench',
           url: './engcalc-pwa/index.html',
           description: 'Tribology, bearings, fatigue & machine design calculators',
+          isLocal: true,
+          fullscreen: true
+        },
+        {
+          id: 'control-tuner',
+          name: 'Control Loop Tuner',
+          icon: 'Gauge',
+          url: './control-tuner/index.html',
+          description: 'PID controller tuner with Bode plots and time-domain response',
           isLocal: true,
           fullscreen: true
         }
