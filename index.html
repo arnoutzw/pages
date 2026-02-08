@@ -904,43 +904,6 @@
       const setCurrentSelected = viewMode === 'docs' ? setSelectedDoc : setSelectedCodeFile;
       const isTreeLoading = viewMode === 'docs' ? docsLoading : docsLoading; // both come from same fetch
 
-      // Wildcard search: * matches any chars, ? matches single char
-      const matchesSearch = useMemo(() => {
-        if (!fileSearch.trim()) return null;
-        const q = fileSearch.trim().toLowerCase();
-        // Convert wildcard pattern to regex
-        const escaped = q.replace(/[.+^${}()|[\]\\]/g, '\\$&');
-        const pattern = escaped.replace(/\*/g, '.*').replace(/\?/g, '.');
-        try {
-          const re = new RegExp(pattern);
-          return (path) => re.test(path.toLowerCase());
-        } catch {
-          return (path) => path.toLowerCase().includes(q);
-        }
-      }, [fileSearch]);
-
-      const currentFiles = useMemo(() => {
-        if (!matchesSearch) return allCurrentFiles;
-        return allCurrentFiles.filter(matchesSearch);
-      }, [allCurrentFiles, matchesSearch]);
-
-      // Auto-expand all folders when searching
-      const searchExpandedFolders = useMemo(() => {
-        if (!matchesSearch) return null;
-        const folders = {};
-        currentFiles.forEach(path => {
-          const parts = path.split('/');
-          let acc = '';
-          for (let i = 0; i < parts.length - 1; i++) {
-            acc = acc ? `${acc}/${parts[i]}` : parts[i];
-            folders[acc] = true;
-          }
-        });
-        return folders;
-      }, [currentFiles, matchesSearch]);
-
-      const effectiveExpandedFolders = searchExpandedFolders || expandedFolders;
-
       // Render highlighted code
       const renderCodeContent = (code, filePath) => {
         const lang = getLangFromPath(filePath);
@@ -1352,6 +1315,140 @@
       );
     };
 
+    // Feedback Modal
+    const FeedbackModal = ({ onClose }) => {
+      const [feedbackType, setFeedbackType] = useState('bug');
+      const [subject, setSubject] = useState('');
+      const [description, setDescription] = useState('');
+      const [sending, setSending] = useState(false);
+      const [sent, setSent] = useState(false);
+
+      const templates = {
+        bug: {
+          label: 'Report a Problem',
+          icon: 'Bug',
+          subjectPlaceholder: 'Brief summary of the issue',
+          descriptionPlaceholder: 'What happened?\n\nSteps to reproduce:\n1. \n2. \n3. \n\nExpected behavior:\n\nActual behavior:',
+        },
+        feature: {
+          label: 'Suggest a Feature',
+          icon: 'Lightbulb',
+          subjectPlaceholder: 'Feature title',
+          descriptionPlaceholder: 'Describe the feature you\'d like to see:\n\nWhy would this be useful?\n\nAny additional context:',
+        },
+      };
+      const t = templates[feedbackType];
+
+      useEffect(() => {
+        const handleEsc = (e) => e.key === 'Escape' && onClose();
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+      }, [onClose]);
+
+      // Reset template fields when switching type
+      useEffect(() => { setSubject(''); setDescription(''); }, [feedbackType]);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSending(true);
+        try {
+          await db.collection('feedback').add({
+            type: feedbackType,
+            subject,
+            description,
+            timestamp: Date.now(),
+            userAgent: navigator.userAgent,
+          });
+          setSent(true);
+        } catch {
+          alert('Failed to send feedback. Please try again.');
+        } finally {
+          setSending(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+             onClick={onClose}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg shadow-2xl"
+               onClick={e => e.stopPropagation()}>
+            <div className="bg-zinc-800 border-b border-zinc-700 p-3 flex items-center justify-between rounded-t-xl">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-400" onClick={onClose}></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icon name="MessageSquare" size={16} className="text-amber-500" />
+                  <span className="font-mono text-zinc-200 text-sm font-bold">Send Feedback</span>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 p-1 hover:bg-zinc-700 rounded">
+                <Icon name="X" size={18} />
+              </button>
+            </div>
+
+            {sent ? (
+              <div className="p-8 text-center">
+                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+                  <Icon name="Check" size={24} className="text-green-400" />
+                </div>
+                <p className="font-mono text-zinc-200 font-bold mb-1">Thanks for your feedback!</p>
+                <p className="text-zinc-500 text-sm">Your message has been sent.</p>
+                <button onClick={onClose}
+                        className="mt-4 px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono text-sm rounded-lg transition-colors">
+                  Close
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="p-6">
+                {/* Type toggle */}
+                <div className="flex bg-zinc-800 rounded-lg p-0.5 mb-5">
+                  {Object.entries(templates).map(([key, val]) => (
+                    <button key={key} type="button" onClick={() => setFeedbackType(key)}
+                            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md font-mono text-xs transition-all
+                                      ${feedbackType === key ? 'bg-amber-500 text-zinc-900 font-bold' : 'text-zinc-400 hover:text-zinc-200'}`}>
+                      <Icon name={val.icon} size={14} />
+                      {val.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Subject */}
+                <label className="block font-mono text-xs text-zinc-500 mb-1.5">
+                  <span className="text-green-400">$</span> subject
+                </label>
+                <input type="text" value={subject} onChange={e => setSubject(e.target.value)}
+                       required autoFocus placeholder={t.subjectPlaceholder}
+                       className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm
+                                placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none mb-4" />
+
+                {/* Description */}
+                <label className="block font-mono text-xs text-zinc-500 mb-1.5">
+                  <span className="text-green-400">$</span> description
+                </label>
+                <textarea value={description} onChange={e => setDescription(e.target.value)}
+                          required placeholder={t.descriptionPlaceholder} rows={8}
+                          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm
+                                   placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none mb-4 resize-none" />
+
+                <button type="submit" disabled={sending}
+                        className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed
+                                 text-zinc-900 font-mono font-bold text-sm py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                  {sending ? (
+                    <><div className="animate-spin rounded-full h-4 w-4 border-t-2 border-zinc-900"></div> Sending...</>
+                  ) : (
+                    <><Icon name="Send" size={14} /> Send Feedback</>
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      );
+    };
+
     // Preferences Modal
     const PreferencesModal = ({ hiddenTabs, onToggle, onClose }) => {
       useEffect(() => {
@@ -1574,6 +1671,7 @@
 
       const [showPreferences, setShowPreferences] = useState(false);
       const [showReleaseNotes, setShowReleaseNotes] = useState(false);
+      const [showFeedback, setShowFeedback] = useState(false);
       const [hiddenTabs, setHiddenTabs] = useState(() => {
         try { return JSON.parse(localStorage.getItem('hiddenTabs') || '[]'); }
         catch { return []; }
@@ -1874,6 +1972,12 @@
                      className="flex items-center justify-center w-9 h-9 rounded-lg text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 transition-colors">
                     <Icon name="Github" size={18} />
                   </a>
+                  <button onClick={() => setShowFeedback(true)}
+                          className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-800/60 text-zinc-500
+                                   hover:text-amber-400 hover:bg-zinc-700 transition-colors"
+                          title="Send Feedback">
+                    <Icon name="MessageSquare" size={16} />
+                  </button>
                   {isAdmin ? (
                     <>
                       <button onClick={() => setShowPreferences(true)}
@@ -2098,6 +2202,11 @@
           {showLoginModal && (
             <LoginModal onLogin={() => { setIsAdmin(true); setShowLoginModal(false); }}
                         onClose={() => setShowLoginModal(false)} />
+          )}
+
+          {/* Feedback Modal */}
+          {showFeedback && (
+            <FeedbackModal onClose={() => setShowFeedback(false)} />
           )}
 
           {/* Preferences Modal */}

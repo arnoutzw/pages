@@ -25,5 +25,10 @@ service cloud.firestore {
     match /github_cache/{document} {
       allow read, write: if true;
     }
+
+    // Feedback collection - public can create, only admin can read
+    match /feedback/{document} {
+      allow create: if true;
+    }
   }
 }
