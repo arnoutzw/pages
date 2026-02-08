@@ -277,6 +277,16 @@
           fullscreen: true,
           discipline: 'physics'
         },
+        {
+          id: 'vibration-mode-visualizer',
+          name: 'Vibration Modes',
+          icon: 'Waves',
+          url: 'https://arnoutzw.github.io/vibration_mode_visualizer/',
+          description: 'Visualize vibration mode shapes of beams and structures',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'physics'
+        },
         // Hardware
         {
           id: 'serial-app',
@@ -308,6 +318,16 @@
           fullscreen: true,
           discipline: 'hardware'
         },
+        {
+          id: 'protocol-decoder-app',
+          name: 'Protocol Decoder',
+          icon: 'Binary',
+          url: 'https://arnoutzw.github.io/protocol-decoder-app/',
+          description: 'Decode SPI, I2C, UART and CAN protocol frames',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'hardware'
+        },
         // Fabrication
         {
           id: 'label-designer-app',
@@ -328,6 +348,16 @@
           isLocal: false,
           fullscreen: true,
           discipline: 'fabrication'
+        },
+        {
+          id: 'g-code-viewer',
+          name: 'G-code Viewer',
+          icon: 'Scan',
+          url: 'https://arnoutzw.github.io/g-code-viewer/',
+          description: 'Preview and simulate CNC toolpaths',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'fabrication'
         }
       ],
     };
@@ -341,6 +371,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-08', changes: 'Add Vibration Modes, Protocol Decoder and G-code Viewer' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Suspension Viz to Mechanical discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Magnetic Fields to Physics and Robot Arm Studio as Kinematics alternative' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add FEA Studio to Mechanical discipline' },
