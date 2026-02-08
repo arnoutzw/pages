@@ -246,6 +246,16 @@
           fullscreen: true,
           discipline: 'mechanical'
         },
+        {
+          id: 'suspension-viz-app',
+          name: 'Suspension Viz',
+          icon: 'CarFront',
+          url: 'https://arnoutzw.github.io/suspension-viz-app/',
+          description: 'Suspension geometry visualization and analysis',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'mechanical'
+        },
         // Physics
         {
           id: 'ray-optics',
@@ -331,6 +341,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-08', changes: 'Add Suspension Viz to Mechanical discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Magnetic Fields to Physics and Robot Arm Studio as Kinematics alternative' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add FEA Studio to Mechanical discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Consolidate Projects, Forks, Starred into GitHub dropdown' },
