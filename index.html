@@ -232,6 +232,16 @@
           fullscreen: true,
           discipline: 'mechanical'
         },
+        {
+          id: 'mech-fea-app',
+          name: 'FEA Studio',
+          icon: 'Grid3x3',
+          url: 'https://arnoutzw.github.io/mech-fea-app/',
+          description: 'Finite element analysis for mechanical structures',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'mechanical'
+        },
         // Physics
         {
           id: 'ray-optics',
@@ -307,6 +317,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-08', changes: 'Add FEA Studio to Mechanical discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Consolidate Projects, Forks, Starred into GitHub dropdown' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add 3D Model Studio to Fabrication discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Restructure navigation by engineering discipline with dropdown menus' },

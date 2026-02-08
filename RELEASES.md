@@ -6,6 +6,8 @@ All notable changes to Maker Portfolio, organized by date and git commit hash.
 
 ## 2026-02-08
 
+### `HEAD` - Add FEA Studio to Mechanical discipline
+
 ### `HEAD` - Consolidate Projects, Forks, Starred into GitHub dropdown
 
 ### `HEAD` - Add 3D Model Studio to Fabrication discipline
