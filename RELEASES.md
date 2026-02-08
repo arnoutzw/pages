@@ -6,6 +6,10 @@ All notable changes to Maker Portfolio, organized by date and git commit hash.
 
 ## 2026-02-08
 
+### `HEAD` - Add Suspension Viz to Mechanical discipline
+
+### `HEAD` - Add Magnetic Fields to Physics and Robot Arm Studio as Kinematics alternative
+
 ### `HEAD` - Add FEA Studio to Mechanical discipline
 
 ### `HEAD` - Consolidate Projects, Forks, Starred into GitHub dropdown
