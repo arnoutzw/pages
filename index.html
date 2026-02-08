@@ -1494,6 +1494,24 @@
         });
       };
 
+      // Cached GitHub fetch helper (5 min TTL)
+      const cachedFetch = async (url, cacheKey) => {
+        const CACHE_TTL = 5 * 60 * 1000;
+        try {
+          const cached = JSON.parse(localStorage.getItem(cacheKey));
+          if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;
+        } catch {}
+        const response = await fetch(url);
+        if (!response.ok) {
+          if (response.status === 403) throw new Error('GitHub API rate limit exceeded. Try again in a few minutes.');
+          if (response.status === 404) throw new Error('User not found');
+          throw new Error('Failed to fetch repositories');
+        }
+        const data = await response.json();
+        try { localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data })); } catch {}
+        return data;
+      };
+
       // Fetch repos
       useEffect(() => {
         if (username === 'YOUR_GITHUB_USERNAME') {
@@ -1505,14 +1523,10 @@
           setLoading(true);
           setError(null);
           try {
-            const response = await fetch(
-              `https://api.github.com/users/${username}/repos?per_page=${CONFIG.MAX_REPOS}&sort=updated`
+            let data = await cachedFetch(
+              `https://api.github.com/users/${username}/repos?per_page=${CONFIG.MAX_REPOS}&sort=updated`,
+              `gh_repos_${username}`
             );
-            if (!response.ok) {
-              if (response.status === 404) throw new Error('User not found');
-              throw new Error('Failed to fetch repositories');
-            }
-            let data = await response.json();
 
             // Apply filters
             if (CONFIG.HIDE_FORKS) data = data.filter(r => !r.fork);
@@ -1572,12 +1586,11 @@
         setLoadingStarred(true);
         const fetchStarred = async () => {
           try {
-            const response = await fetch(
-              `https://api.github.com/users/${username}/starred?per_page=${CONFIG.MAX_REPOS}&sort=updated`
+            const data = await cachedFetch(
+              `https://api.github.com/users/${username}/starred?per_page=${CONFIG.MAX_REPOS}&sort=updated`,
+              `gh_starred_${username}`
             );
-            if (response.ok) {
-              setStarredRepos(await response.json());
-            }
+            setStarredRepos(data);
           } catch { /* ignore */ }
           finally { setLoadingStarred(false); }
         };
