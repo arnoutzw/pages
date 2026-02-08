@@ -718,6 +718,7 @@
       const [codeContent, setCodeContent] = useState('');
       const [codeContentLoading, setCodeContentLoading] = useState(false);
       const [isFullscreen, setIsFullscreen] = useState(false);
+      const [fileSearch, setFileSearch] = useState('');
 
       const toggleFolder = (folderPath) => {
         setExpandedFolders(prev => ({ ...prev, [folderPath]: !prev[folderPath] }));
@@ -859,10 +860,47 @@
 
       const getFileName = (path) => path.split('/').pop();
 
-      const currentFiles = viewMode === 'docs' ? docs : codeFiles;
+      const allCurrentFiles = viewMode === 'docs' ? docs : codeFiles;
       const currentSelected = viewMode === 'docs' ? selectedDoc : selectedCodeFile;
       const setCurrentSelected = viewMode === 'docs' ? setSelectedDoc : setSelectedCodeFile;
       const isTreeLoading = viewMode === 'docs' ? docsLoading : docsLoading; // both come from same fetch
+
+      // Wildcard search: * matches any chars, ? matches single char
+      const matchesSearch = useMemo(() => {
+        if (!fileSearch.trim()) return null;
+        const q = fileSearch.trim().toLowerCase();
+        // Convert wildcard pattern to regex
+        const escaped = q.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+        const pattern = escaped.replace(/\*/g, '.*').replace(/\?/g, '.');
+        try {
+          const re = new RegExp(pattern);
+          return (path) => re.test(path.toLowerCase());
+        } catch {
+          return (path) => path.toLowerCase().includes(q);
+        }
+      }, [fileSearch]);
+
+      const currentFiles = useMemo(() => {
+        if (!matchesSearch) return allCurrentFiles;
+        return allCurrentFiles.filter(matchesSearch);
+      }, [allCurrentFiles, matchesSearch]);
+
+      // Auto-expand all folders when searching
+      const searchExpandedFolders = useMemo(() => {
+        if (!matchesSearch) return null;
+        const folders = {};
+        currentFiles.forEach(path => {
+          const parts = path.split('/');
+          let acc = '';
+          for (let i = 0; i < parts.length - 1; i++) {
+            acc = acc ? `${acc}/${parts[i]}` : parts[i];
+            folders[acc] = true;
+          }
+        });
+        return folders;
+      }, [currentFiles, matchesSearch]);
+
+      const effectiveExpandedFolders = searchExpandedFolders || expandedFolders;
 
       // Render highlighted code
       const renderCodeContent = (code, filePath) => {
@@ -885,7 +923,7 @@
             <React.Fragment key={path || 'root'}>
               {folderEntries.map(name => {
                 const folderPath = path ? `${path}/${name}` : name;
-                const isExpanded = expandedFolders[folderPath];
+                const isExpanded = effectiveExpandedFolders[folderPath];
                 return (
                   <React.Fragment key={folderPath}>
                     <button onClick={() => toggleFolder(folderPath)}
@@ -983,20 +1021,33 @@
               {/* Sidebar - File tree */}
               <div className={`${sidebarOpen ? 'w-64' : 'w-0'} shrink-0 bg-zinc-850 border-r border-zinc-700 overflow-hidden transition-all duration-200`}
                    style={{ backgroundColor: '#1a1a1f' }}>
-                <div className="p-3 border-b border-zinc-700">
+                <div className="p-3 border-b border-zinc-700 space-y-2">
                   <h3 className="text-xs font-mono text-zinc-500 uppercase tracking-wider flex items-center gap-2">
                     <Icon name={viewMode === 'docs' ? 'Files' : 'FolderCode'} size={14} />
                     {viewMode === 'docs' ? 'Documentation' : 'Source Code'}
                   </h3>
+                  <div className="relative">
+                    <Icon name="Search" size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-600" />
+                    <input type="text" value={fileSearch} onChange={e => setFileSearch(e.target.value)}
+                           placeholder="Filter files... (* = wildcard)"
+                           className="w-full bg-zinc-800 border border-zinc-700 rounded pl-7 pr-7 py-1 font-mono text-xs
+                                    text-zinc-300 placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none" />
+                    {fileSearch && (
+                      <button onClick={() => setFileSearch('')}
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400">
+                        <Icon name="X" size={12} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="overflow-y-auto h-[calc(100%-48px)]">
+                <div className="overflow-y-auto h-[calc(100%-90px)]">
                   {isTreeLoading ? (
                     <div className="p-4 text-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-amber-500 mx-auto"></div>
                     </div>
                   ) : currentFiles.length === 0 ? (
                     <div className="p-4 text-center text-zinc-600 font-mono text-xs">
-                      No files found
+                      {fileSearch ? 'No matches' : 'No files found'}
                     </div>
                   ) : renderTree()}
                 </div>
