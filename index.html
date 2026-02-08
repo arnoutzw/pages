@@ -284,6 +284,16 @@
           isLocal: false,
           fullscreen: true,
           discipline: 'fabrication'
+        },
+        {
+          id: '3d-model-studio-app',
+          name: '3D Model Studio',
+          icon: 'Box',
+          url: 'https://arnoutzw.github.io/3d-model-studio-app/',
+          description: '3D model viewer and editor',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'fabrication'
         }
       ],
     };
@@ -297,6 +307,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-08', changes: 'Add 3D Model Studio to Fabrication discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Restructure navigation by engineering discipline with dropdown menus' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Heat Calculator and Kinematics Studio to integrated apps' },
       { hash: 'HEAD', date: '2026-02-07', changes: 'Add Gear Calculator to integrated apps' },

@@ -6,6 +6,8 @@ All notable changes to Maker Portfolio, organized by date and git commit hash.
 
 ## 2026-02-08
 
+### `HEAD` - Add 3D Model Studio to Fabrication discipline
+
 ### `HEAD` - Restructure navigation by engineering discipline with dropdown menus
 
 ### `HEAD` - Add Heat Calculator and Kinematics Studio to integrated apps
