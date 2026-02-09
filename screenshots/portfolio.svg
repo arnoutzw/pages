@@ -1,89 +1,121 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" font-family="Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
   <!-- Background -->
   <rect width="960" height="540" fill="#09090b"/>
 
   <!-- Header bar -->
   <rect y="0" width="960" height="56" fill="#18181b"/>
   <rect y="56" width="960" height="1" fill="#27272a"/>
-  <!-- Logo -->
-  <text x="20" y="35" fill="#f59e0b" font-size="16" font-weight="700">Maker Portfolio</text>
-  <text x="170" y="35" fill="#71717a" font-size="12">Building things that work (mostly)</text>
 
-  <!-- Nav tabs -->
-  <rect x="20" y="14" width="0" height="0" rx="6"/>
-  <rect x="520" y="14" width="120" height="30" rx="6" fill="#f59e0b"/>
-  <text x="546" y="34" fill="#09090b" font-size="11" font-weight="600">Original Projects</text>
-  <rect x="648" y="14" width="100" height="30" rx="6" fill="#27272a"/>
-  <text x="662" y="34" fill="#a1a1aa" font-size="11" font-weight="600">Label Designer</text>
-  <rect x="756" y="14" width="90" height="30" rx="6" fill="#27272a"/>
-  <text x="772" y="34" fill="#a1a1aa" font-size="11" font-weight="600">Resistor Colors</text>
-  <rect x="854" y="14" width="80" height="30" rx="6" fill="#27272a"/>
-  <text x="871" y="34" fill="#a1a1aa" font-size="11" font-weight="600">3D Models</text>
+  <!-- Logo -->
+  <text x="20" y="35" fill="#f59e0b" font-size="16" font-weight="700" font-family="JetBrains Mono,monospace">Zwartbol Industries</text>
+  <text x="210" y="35" fill="#71717a" font-size="12">Building things that work (mostly)</text>
+
+  <!-- Discipline nav dropdowns -->
+  <rect x="420" y="14" width="74" height="28" rx="6" fill="#27272a"/>
+  <text x="432" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Planning</text>
+  <rect x="500" y="14" width="74" height="28" rx="6" fill="#27272a"/>
+  <text x="512" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Electrical</text>
+  <rect x="580" y="14" width="82" height="28" rx="6" fill="#27272a"/>
+  <text x="590" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Mechanical</text>
+  <rect x="668" y="14" width="66" height="28" rx="6" fill="#27272a"/>
+  <text x="680" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Physics</text>
+  <rect x="740" y="14" width="72" height="28" rx="6" fill="#27272a"/>
+  <text x="752" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Software</text>
+  <rect x="818" y="14" width="82" height="28" rx="6" fill="#27272a"/>
+  <text x="828" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Fabrication</text>
+
+  <!-- Login icon -->
+  <circle cx="930" cy="28" r="12" fill="#27272a"/>
+  <text x="926" y="33" fill="#71717a" font-size="12">&#128100;</text>
+
+  <!-- GitHub sub-tabs -->
+  <rect x="20" y="66" width="90" height="30" rx="6" fill="#f59e0b"/>
+  <text x="38" y="85" fill="#09090b" font-size="11" font-weight="600">Projects</text>
+  <rect x="118" y="66" width="70" height="30" rx="6" fill="#27272a"/>
+  <text x="134" y="85" fill="#a1a1aa" font-size="11" font-weight="600">Forks</text>
+  <rect x="196" y="66" width="70" height="30" rx="6" fill="#27272a"/>
+  <text x="210" y="85" fill="#a1a1aa" font-size="11" font-weight="600">Starred</text>
 
   <!-- Search bar -->
-  <rect x="20" y="72" width="920" height="40" rx="8" fill="#18181b" stroke="#27272a"/>
-  <text x="44" y="97" fill="#71717a" font-size="13">Search projects...</text>
+  <rect x="20" y="106" width="920" height="40" rx="8" fill="#18181b" stroke="#27272a"/>
+  <text x="44" y="131" fill="#71717a" font-size="13">Search projects by name, description, topic, or language...</text>
 
-  <!-- Sort/filter -->
-  <rect x="20" y="124" width="100" height="28" rx="6" fill="#27272a"/>
-  <text x="36" y="142" fill="#a1a1aa" font-size="11">Recently Updated</text>
+  <!-- Sort/filter bar -->
+  <rect x="20" y="158" width="110" height="26" rx="6" fill="#27272a"/>
+  <text x="34" y="175" fill="#a1a1aa" font-size="10">Recently Updated</text>
+  <text x="860" y="175" fill="#71717a" font-size="11">Showing 24 repos</text>
 
-  <!-- Project cards grid -->
+  <!-- Project cards grid - 3 columns -->
   <!-- Card 1 -->
-  <rect x="20" y="168" width="296" height="160" rx="8" fill="#18181b" stroke="#27272a"/>
-  <text x="36" y="196" fill="#f59e0b" font-size="14" font-weight="600">smart-greenhouse</text>
-  <text x="36" y="216" fill="#a1a1aa" font-size="12">ESP32-based greenhouse automation</text>
-  <rect x="36" y="230" width="50" height="20" rx="4" fill="#27272a"/>
-  <text x="44" y="244" fill="#22c55e" font-size="10">C++</text>
-  <rect x="92" y="230" width="56" height="20" rx="4" fill="#27272a"/>
-  <text x="100" y="244" fill="#a1a1aa" font-size="10">esp32</text>
-  <rect x="36" y="264" width="264" height="1" fill="#27272a"/>
-  <text x="36" y="282" fill="#71717a" font-size="10">Updated 3 days ago</text>
-  <text x="220" y="282" fill="#71717a" font-size="10">2 stars</text>
+  <rect x="20" y="196" width="296" height="150" rx="8" fill="#18181b" stroke="#27272a"/>
+  <rect x="20" y="196" width="296" height="5" rx="8" fill="#f59e0b" opacity="0.5"/>
+  <text x="36" y="224" fill="#f59e0b" font-size="14" font-weight="600" font-family="JetBrains Mono,monospace">filter-design-studio</text>
+  <text x="36" y="244" fill="#a1a1aa" font-size="11">Analog and digital filter design</text>
+  <rect x="36" y="256" width="56" height="18" rx="4" fill="#27272a"/>
+  <text x="43" y="269" fill="#3b82f6" font-size="9">JavaScript</text>
+  <rect x="98" y="256" width="40" height="18" rx="4" fill="#27272a"/>
+  <text x="105" y="269" fill="#a1a1aa" font-size="9">dsp</text>
+  <rect x="144" y="256" width="50" height="18" rx="4" fill="#27272a"/>
+  <text x="151" y="269" fill="#a1a1aa" font-size="9">biquad</text>
+  <rect x="36" y="284" width="264" height="1" fill="#27272a"/>
+  <text x="36" y="302" fill="#71717a" font-size="10">Updated 2 days ago</text>
+  <text x="220" y="302" fill="#71717a" font-size="10">3 stars</text>
 
   <!-- Card 2 -->
-  <rect x="332" y="168" width="296" height="160" rx="8" fill="#18181b" stroke="#27272a"/>
-  <text x="348" y="196" fill="#f59e0b" font-size="14" font-weight="600">cnc-controller</text>
-  <text x="348" y="216" fill="#a1a1aa" font-size="12">GRBL-based CNC mill controller</text>
-  <rect x="348" y="230" width="60" height="20" rx="4" fill="#27272a"/>
-  <text x="356" y="244" fill="#3b82f6" font-size="10">Python</text>
-  <rect x="414" y="230" width="40" height="20" rx="4" fill="#27272a"/>
-  <text x="422" y="244" fill="#a1a1aa" font-size="10">cnc</text>
-  <rect x="348" y="264" width="264" height="1" fill="#27272a"/>
-  <text x="348" y="282" fill="#71717a" font-size="10">Updated 1 week ago</text>
-  <text x="536" y="282" fill="#71717a" font-size="10">5 stars</text>
+  <rect x="332" y="196" width="296" height="150" rx="8" fill="#18181b" stroke="#27272a"/>
+  <rect x="332" y="196" width="296" height="5" rx="8" fill="#f59e0b" opacity="0.5"/>
+  <text x="348" y="224" fill="#f59e0b" font-size="14" font-weight="600" font-family="JetBrains Mono,monospace">3d-model-studio-app</text>
+  <text x="348" y="244" fill="#a1a1aa" font-size="11">3D model viewer and editor</text>
+  <rect x="348" y="256" width="56" height="18" rx="4" fill="#27272a"/>
+  <text x="355" y="269" fill="#3b82f6" font-size="9">JavaScript</text>
+  <rect x="410" y="256" width="48" height="18" rx="4" fill="#27272a"/>
+  <text x="417" y="269" fill="#a1a1aa" font-size="9">three.js</text>
+  <rect x="348" y="284" width="264" height="1" fill="#27272a"/>
+  <text x="348" y="302" fill="#71717a" font-size="10">Updated 3 days ago</text>
+  <text x="536" y="302" fill="#71717a" font-size="10">5 stars</text>
 
   <!-- Card 3 -->
-  <rect x="644" y="168" width="296" height="160" rx="8" fill="#18181b" stroke="#27272a"/>
-  <text x="660" y="196" fill="#f59e0b" font-size="14" font-weight="600">led-matrix-clock</text>
-  <text x="660" y="216" fill="#a1a1aa" font-size="12">WS2812B LED matrix desk clock</text>
-  <rect x="660" y="230" width="70" height="20" rx="4" fill="#27272a"/>
-  <text x="668" y="244" fill="#f59e0b" font-size="10">Arduino</text>
-  <rect x="660" y="264" width="264" height="1" fill="#27272a"/>
-  <text x="660" y="282" fill="#71717a" font-size="10">Updated 2 weeks ago</text>
+  <rect x="644" y="196" width="296" height="150" rx="8" fill="#18181b" stroke="#27272a"/>
+  <rect x="644" y="196" width="296" height="5" rx="8" fill="#f59e0b" opacity="0.5"/>
+  <text x="660" y="224" fill="#f59e0b" font-size="14" font-weight="600" font-family="JetBrains Mono,monospace">serial-app</text>
+  <text x="660" y="244" fill="#a1a1aa" font-size="11">Web serial terminal for devices</text>
+  <rect x="660" y="256" width="38" height="18" rx="4" fill="#27272a"/>
+  <text x="667" y="269" fill="#f7df1e" font-size="9">HTML</text>
+  <rect x="704" y="256" width="44" height="18" rx="4" fill="#27272a"/>
+  <text x="710" y="269" fill="#a1a1aa" font-size="9">serial</text>
+  <rect x="660" y="284" width="264" height="1" fill="#27272a"/>
+  <text x="660" y="302" fill="#71717a" font-size="10">Updated 1 week ago</text>
 
   <!-- Card row 2 -->
-  <rect x="20" y="344" width="296" height="160" rx="8" fill="#18181b" stroke="#27272a"/>
-  <text x="36" y="372" fill="#f59e0b" font-size="14" font-weight="600">pcb-reflow-oven</text>
-  <text x="36" y="392" fill="#a1a1aa" font-size="12">PID-controlled reflow oven mod</text>
-  <rect x="36" y="406" width="40" height="20" rx="4" fill="#27272a"/>
-  <text x="46" y="420" fill="#ef4444" font-size="10">C</text>
-  <rect x="36" y="440" width="264" height="1" fill="#27272a"/>
-  <text x="36" y="458" fill="#71717a" font-size="10">Updated 1 month ago</text>
+  <!-- Card 4 -->
+  <rect x="20" y="362" width="296" height="150" rx="8" fill="#18181b" stroke="#27272a"/>
+  <rect x="20" y="362" width="296" height="5" rx="8" fill="#f59e0b" opacity="0.5"/>
+  <text x="36" y="390" fill="#f59e0b" font-size="14" font-weight="600" font-family="JetBrains Mono,monospace">engineering-calcs-app</text>
+  <text x="36" y="410" fill="#a1a1aa" font-size="11">Tribology, bearings and machine design</text>
+  <rect x="36" y="422" width="56" height="18" rx="4" fill="#27272a"/>
+  <text x="43" y="435" fill="#3b82f6" font-size="9">JavaScript</text>
+  <rect x="36" y="450" width="264" height="1" fill="#27272a"/>
+  <text x="36" y="468" fill="#71717a" font-size="10">Updated 2 weeks ago</text>
+  <text x="220" y="468" fill="#71717a" font-size="10">1 star</text>
 
-  <rect x="332" y="344" width="296" height="160" rx="8" fill="#18181b" stroke="#27272a"/>
-  <text x="348" y="372" fill="#f59e0b" font-size="14" font-weight="600">3d-printer-mods</text>
-  <text x="348" y="392" fill="#a1a1aa" font-size="12">Custom mods for Prusa MK3S+</text>
-  <rect x="348" y="406" width="66" height="20" rx="4" fill="#27272a"/>
-  <text x="356" y="420" fill="#a855f7" font-size="10">OpenSCAD</text>
-  <rect x="348" y="440" width="264" height="1" fill="#27272a"/>
-  <text x="348" y="458" fill="#71717a" font-size="10">Updated 2 months ago</text>
+  <!-- Card 5 -->
+  <rect x="332" y="362" width="296" height="150" rx="8" fill="#18181b" stroke="#27272a"/>
+  <rect x="332" y="362" width="296" height="5" rx="8" fill="#f59e0b" opacity="0.5"/>
+  <text x="348" y="390" fill="#f59e0b" font-size="14" font-weight="600" font-family="JetBrains Mono,monospace">label-designer-app</text>
+  <text x="348" y="410" fill="#a1a1aa" font-size="11">Design and print custom labels</text>
+  <rect x="348" y="422" width="56" height="18" rx="4" fill="#27272a"/>
+  <text x="355" y="435" fill="#3b82f6" font-size="9">JavaScript</text>
+  <rect x="348" y="450" width="264" height="1" fill="#27272a"/>
+  <text x="348" y="468" fill="#71717a" font-size="10">Updated 3 weeks ago</text>
+  <text x="536" y="468" fill="#71717a" font-size="10">2 stars</text>
 
-  <rect x="644" y="344" width="296" height="160" rx="8" fill="#18181b" stroke="#27272a"/>
-  <text x="660" y="372" fill="#f59e0b" font-size="14" font-weight="600">power-supply-v2</text>
-  <text x="660" y="392" fill="#a1a1aa" font-size="12">Adjustable bench power supply</text>
-  <rect x="660" y="406" width="60" height="20" rx="4" fill="#27272a"/>
-  <text x="668" y="420" fill="#22c55e" font-size="10">KiCad</text>
-  <rect x="660" y="440" width="264" height="1" fill="#27272a"/>
-  <text x="660" y="458" fill="#71717a" font-size="10">Updated 3 months ago</text>
+  <!-- Card 6 -->
+  <rect x="644" y="362" width="296" height="150" rx="8" fill="#18181b" stroke="#27272a"/>
+  <rect x="644" y="362" width="296" height="5" rx="8" fill="#f59e0b" opacity="0.5"/>
+  <text x="660" y="390" fill="#f59e0b" font-size="14" font-weight="600" font-family="JetBrains Mono,monospace">control-tuner-app</text>
+  <text x="660" y="410" fill="#a1a1aa" font-size="11">PID controller tuner with Bode plots</text>
+  <rect x="660" y="422" width="56" height="18" rx="4" fill="#27272a"/>
+  <text x="667" y="435" fill="#3b82f6" font-size="9">JavaScript</text>
+  <rect x="660" y="450" width="264" height="1" fill="#27272a"/>
+  <text x="660" y="468" fill="#71717a" font-size="10">Updated 1 month ago</text>
 </svg>

@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 440" font-family="Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <!-- Background -->
+  <rect width="960" height="440" fill="#09090b"/>
+
+  <!-- Header bar -->
+  <rect y="0" width="960" height="56" fill="#18181b"/>
+  <rect y="56" width="960" height="1" fill="#27272a"/>
+
+  <!-- Logo -->
+  <text x="20" y="35" fill="#f59e0b" font-size="16" font-weight="700" font-family="JetBrains Mono,monospace">Zwartbol Industries</text>
+  <text x="210" y="35" fill="#71717a" font-size="12">Building things that work (mostly)</text>
+
+  <!-- Discipline nav dropdowns -->
+  <rect x="420" y="14" width="74" height="28" rx="6" fill="#27272a"/>
+  <text x="432" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Planning</text>
+
+  <!-- Electrical - active/open -->
+  <rect x="500" y="14" width="74" height="28" rx="6" fill="#f59e0b"/>
+  <text x="512" y="32" fill="#09090b" font-size="10" font-weight="600">Electrical</text>
+
+  <rect x="580" y="14" width="82" height="28" rx="6" fill="#27272a"/>
+  <text x="590" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Mechanical</text>
+  <rect x="668" y="14" width="66" height="28" rx="6" fill="#27272a"/>
+  <text x="680" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Physics</text>
+  <rect x="740" y="14" width="72" height="28" rx="6" fill="#27272a"/>
+  <text x="752" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Software</text>
+  <rect x="818" y="14" width="82" height="28" rx="6" fill="#27272a"/>
+  <text x="828" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Fabrication</text>
+
+  <!-- Electrical dropdown panel (expanded) -->
+  <rect x="480" y="48" width="200" height="170" rx="8" fill="#18181b" stroke="#3f3f46" stroke-width="1"/>
+  <!-- shadow hint -->
+  <rect x="482" y="50" width="196" height="166" rx="7" fill="none" stroke="#000" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Dropdown items -->
+  <g>
+    <rect x="488" y="56" width="184" height="32" rx="6" fill="#27272a"/>
+    <text x="520" y="76" fill="#f59e0b" font-size="12" font-weight="500">Datasheets</text>
+    <text x="504" y="77" fill="#71717a" font-size="13">&#128269;</text>
+  </g>
+  <g>
+    <rect x="488" y="92" width="184" height="32" rx="6" fill="transparent"/>
+    <text x="520" y="112" fill="#d4d4d8" font-size="12" font-weight="500">Circuit Sim</text>
+    <text x="504" y="113" fill="#71717a" font-size="13">&#9889;</text>
+  </g>
+  <g>
+    <rect x="488" y="128" width="184" height="32" rx="6" fill="transparent"/>
+    <text x="520" y="148" fill="#d4d4d8" font-size="12" font-weight="500">Filter Design Studio</text>
+    <text x="504" y="149" fill="#71717a" font-size="13">&#127925;</text>
+  </g>
+  <g>
+    <rect x="488" y="164" width="184" height="32" rx="6" fill="transparent"/>
+    <text x="520" y="184" fill="#d4d4d8" font-size="12" font-weight="500">Control Loop Tuner</text>
+    <text x="504" y="185" fill="#71717a" font-size="13">&#9881;</text>
+  </g>
+
+  <!-- Discipline overview cards below -->
+  <text x="40" y="260" fill="#a1a1aa" font-size="11" font-weight="600" letter-spacing="1">6 ENGINEERING DISCIPLINES  &middot;  27 INTEGRATED TOOLS</text>
+
+  <!-- Discipline card row -->
+  <!-- Planning -->
+  <rect x="20" y="280" width="146" height="140" rx="8" fill="#18181b" stroke="#27272a"/>
+  <text x="36" y="308" fill="#f59e0b" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">Planning</text>
+  <text x="36" y="328" fill="#a1a1aa" font-size="10">Scrum Board</text>
+  <text x="36" y="344" fill="#a1a1aa" font-size="10">Lab Inventory</text>
+  <text x="36" y="360" fill="#a1a1aa" font-size="10">Notes</text>
+  <text x="36" y="376" fill="#a1a1aa" font-size="10">ERP</text>
+  <text x="36" y="392" fill="#a1a1aa" font-size="10">Invoice Maker</text>
+  <text x="36" y="410" fill="#71717a" font-size="9">5 tools</text>
+
+  <!-- Electrical -->
+  <rect x="176" y="280" width="146" height="140" rx="8" fill="#18181b" stroke="#27272a"/>
+  <text x="192" y="308" fill="#f59e0b" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">Electrical</text>
+  <text x="192" y="328" fill="#a1a1aa" font-size="10">Datasheets</text>
+  <text x="192" y="344" fill="#a1a1aa" font-size="10">Circuit Sim</text>
+  <text x="192" y="360" fill="#a1a1aa" font-size="10">Filter Design Studio</text>
+  <text x="192" y="376" fill="#a1a1aa" font-size="10">Control Loop Tuner</text>
+  <text x="192" y="410" fill="#71717a" font-size="9">4 tools</text>
+
+  <!-- Mechanical -->
+  <rect x="332" y="280" width="146" height="140" rx="8" fill="#18181b" stroke="#27272a"/>
+  <text x="348" y="308" fill="#f59e0b" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">Mechanical</text>
+  <text x="348" y="328" fill="#a1a1aa" font-size="10">Eng. Calculators</text>
+  <text x="348" y="344" fill="#a1a1aa" font-size="10">Gear Calculator</text>
+  <text x="348" y="360" fill="#a1a1aa" font-size="10">Kinematics Studio</text>
+  <text x="348" y="376" fill="#a1a1aa" font-size="10">FEA Studio</text>
+  <text x="348" y="392" fill="#a1a1aa" font-size="10">Suspension Viz</text>
+  <text x="348" y="410" fill="#71717a" font-size="9">5 tools</text>
+
+  <!-- Physics -->
+  <rect x="488" y="280" width="146" height="140" rx="8" fill="#18181b" stroke="#27272a"/>
+  <text x="504" y="308" fill="#f59e0b" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">Physics</text>
+  <text x="504" y="328" fill="#a1a1aa" font-size="10">Ray Optics</text>
+  <text x="504" y="344" fill="#a1a1aa" font-size="10">Magnetic Fields</text>
+  <text x="504" y="360" fill="#a1a1aa" font-size="10">Vibration Modes</text>
+  <text x="504" y="410" fill="#71717a" font-size="9">3 tools</text>
+
+  <!-- Software -->
+  <rect x="644" y="280" width="146" height="140" rx="8" fill="#18181b" stroke="#27272a"/>
+  <text x="660" y="308" fill="#f59e0b" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">Software</text>
+  <text x="660" y="328" fill="#a1a1aa" font-size="10">Serial Terminal</text>
+  <text x="660" y="344" fill="#a1a1aa" font-size="10">JK BMS App</text>
+  <text x="660" y="360" fill="#a1a1aa" font-size="10">Protocol Decoder</text>
+  <text x="660" y="376" fill="#a1a1aa" font-size="10">PyLab</text>
+  <text x="660" y="392" fill="#a1a1aa" font-size="10">+ 2 more</text>
+  <text x="660" y="410" fill="#71717a" font-size="9">6 tools</text>
+
+  <!-- Fabrication -->
+  <rect x="800" y="280" width="146" height="140" rx="8" fill="#18181b" stroke="#27272a"/>
+  <text x="816" y="308" fill="#f59e0b" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">Fabrication</text>
+  <text x="816" y="328" fill="#a1a1aa" font-size="10">Label Designer</text>
+  <text x="816" y="344" fill="#a1a1aa" font-size="10">3D Model Studio</text>
+  <text x="816" y="360" fill="#a1a1aa" font-size="10">G-code Viewer</text>
+  <text x="816" y="376" fill="#a1a1aa" font-size="10">Woodcut Optimizer</text>
+  <text x="816" y="410" fill="#71717a" font-size="9">4 tools</text>
+</svg>
