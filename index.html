@@ -39,6 +39,7 @@
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <!-- Markdown Parser & Syntax Highlighting -->
@@ -142,6 +143,12 @@
 
       // Admin password for login (enables hide/unhide repos)
       ADMIN_PASSWORD: 'admin',
+
+      // Admin email addresses — SSO users with these emails get admin access
+      ADMIN_EMAILS: [],
+
+      // SSO providers to show on login modal ('google', 'github')
+      SSO_PROVIDERS: ['google', 'github'],
 
       // Disciplines for grouping apps in navigation
       DISCIPLINES: [
@@ -461,6 +468,11 @@
       measurementId: "G-VXDKDLXP7L"
     });
     const db = firebaseApp.firestore();
+    const auth = firebaseApp.auth();
+
+    // SSO providers
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+    const githubProvider = new firebase.auth.GithubAuthProvider();
     // ============================================
 
     // ============================================
@@ -471,6 +483,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-13', changes: 'Add Firebase SSO authentication with Google and GitHub providers for all PWAs' },
       { hash: 'HEAD', date: '2026-02-09', changes: 'Add ERP and Invoice Maker to Planning discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Scrum Board under new Planning discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Woodcut Optimizer to Fabrication discipline' },
@@ -1300,18 +1313,54 @@
       );
     };
 
-    // Login Modal
+    // Login Modal — SSO with Firebase Auth + password fallback
     const LoginModal = ({ onLogin, onClose }) => {
       const [password, setPassword] = useState('');
       const [error, setError] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [showPassword, setShowPassword] = useState(false);
 
-      const handleSubmit = (e) => {
+      const handlePasswordSubmit = (e) => {
         e.preventDefault();
         if (password === CONFIG.ADMIN_PASSWORD) {
-          onLogin();
+          onLogin({ method: 'password' });
         } else {
           setError('Invalid password');
           setPassword('');
+        }
+      };
+
+      const handleSSO = async (providerName) => {
+        setError('');
+        setLoading(true);
+        try {
+          const provider = providerName === 'google' ? googleProvider : githubProvider;
+          const result = await auth.signInWithPopup(provider);
+          const user = result.user;
+          const isEmailAdmin = CONFIG.ADMIN_EMAILS.length > 0
+            ? CONFIG.ADMIN_EMAILS.includes(user.email)
+            : true; // If no admin emails configured, all SSO users get admin
+          onLogin({
+            method: 'sso',
+            provider: providerName,
+            user: {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+            },
+            isAdmin: isEmailAdmin,
+          });
+        } catch (err) {
+          if (err.code === 'auth/popup-closed-by-user') {
+            setError('Sign-in cancelled');
+          } else if (err.code === 'auth/account-exists-with-different-credential') {
+            setError('Account exists with a different sign-in method');
+          } else {
+            setError(err.message || 'Sign-in failed');
+          }
+        } finally {
+          setLoading(false);
         }
       };
 
@@ -1320,6 +1369,11 @@
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
       }, [onClose]);
+
+      const providerMeta = {
+        google: { name: 'Google', icon: 'Chrome', color: 'bg-blue-600 hover:bg-blue-500' },
+        github: { name: 'GitHub', icon: 'Github', color: 'bg-zinc-700 hover:bg-zinc-600' },
+      };
 
       return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -1335,32 +1389,78 @@
                 </div>
                 <div className="flex items-center gap-2">
                   <Icon name="Lock" size={16} className="text-amber-500" />
-                  <span className="font-mono text-zinc-200 text-sm font-bold">Admin Login</span>
+                  <span className="font-mono text-zinc-200 text-sm font-bold">Sign In</span>
                 </div>
               </div>
               <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 p-1 hover:bg-zinc-700 rounded">
                 <Icon name="X" size={18} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6">
-              <label className="block font-mono text-xs text-zinc-500 mb-2">
-                <span className="text-green-400">$</span> enter password
-              </label>
-              <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                     autoFocus placeholder="••••••••"
-                     className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm
-                              placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none mb-3" />
+            <div className="p-6">
+              {/* SSO Buttons */}
+              {CONFIG.SSO_PROVIDERS.length > 0 && (
+                <div className="space-y-2.5 mb-5">
+                  <label className="block font-mono text-xs text-zinc-500 mb-2">
+                    <span className="text-green-400">$</span> sign in with
+                  </label>
+                  {CONFIG.SSO_PROVIDERS.map(p => {
+                    const meta = providerMeta[p];
+                    if (!meta) return null;
+                    return (
+                      <button key={p} onClick={() => handleSSO(p)} disabled={loading}
+                              className={`w-full flex items-center justify-center gap-2.5 ${meta.color} text-white font-mono font-bold text-sm
+                                         py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}>
+                        {loading ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+                        ) : (
+                          <Icon name={meta.icon} size={18} />
+                        )}
+                        Continue with {meta.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Divider */}
+              {CONFIG.SSO_PROVIDERS.length > 0 && (
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="flex-1 border-t border-zinc-700"></div>
+                  <span className="font-mono text-xs text-zinc-600">or</span>
+                  <div className="flex-1 border-t border-zinc-700"></div>
+                </div>
+              )}
+
+              {/* Password fallback */}
+              {!showPassword && CONFIG.SSO_PROVIDERS.length > 0 ? (
+                <button onClick={() => setShowPassword(true)}
+                        className="w-full text-center font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors py-2">
+                  Use admin password instead
+                </button>
+              ) : (
+                <form onSubmit={handlePasswordSubmit}>
+                  <label className="block font-mono text-xs text-zinc-500 mb-2">
+                    <span className="text-green-400">$</span> enter password
+                  </label>
+                  <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                         autoFocus placeholder="••••••••"
+                         className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm
+                                  placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none mb-3" />
+                  <button type="submit"
+                          className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-900 font-mono font-bold text-sm
+                                   py-2.5 rounded-lg transition-colors">
+                    Authenticate
+                  </button>
+                </form>
+              )}
+
+              {/* Error display */}
               {error && (
-                <p className="text-red-400 text-xs font-mono mb-3">
+                <p className="text-red-400 text-xs font-mono mt-3">
                   <span className="text-red-500">error:</span> {error}
                 </p>
               )}
-              <button type="submit"
-                      className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-900 font-mono font-bold text-sm
-                               py-2.5 rounded-lg transition-colors">
-                Authenticate
-              </button>
-            </form>
+            </div>
           </div>
         </div>
       );
@@ -1606,7 +1706,7 @@
     };
 
     // Embedded App View - iframe for local apps
-    const EmbeddedApp = ({ app, isAdmin }) => {
+    const EmbeddedApp = ({ app, isAdmin, authUser }) => {
       const isFullscreen = app.fullscreen;
       const iframeRef = React.useRef(null);
       const [altIndex, setAltIndex] = useState(0);
@@ -1617,24 +1717,38 @@
       const currentName = currentAlt ? currentAlt.name : app.name;
       const currentIcon = currentAlt ? currentAlt.icon : app.icon;
 
-      // Broadcast admin state to iframe on mount and when isAdmin changes
+      // Broadcast auth state to iframe on mount and when auth changes
       React.useEffect(() => {
         const iframe = iframeRef.current;
         if (!iframe) return;
-        const sendAuth = () => {
+        const sendAuth = async () => {
           try {
+            // Get fresh ID token for SSO users
+            let idToken = null;
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+              try { idToken = await currentUser.getIdToken(); } catch {}
+            }
             iframe.contentWindow.postMessage({
               type: 'admin-auth',
               isAdmin: !!isAdmin,
-              key: isAdmin ? CONFIG.ADMIN_PASSWORD : null
+              key: isAdmin ? CONFIG.ADMIN_PASSWORD : null,
+              // SSO fields for child PWAs
+              sso: authUser ? {
+                uid: authUser.uid,
+                email: authUser.email,
+                displayName: authUser.displayName,
+                photoURL: authUser.photoURL,
+                idToken,
+              } : null,
             }, '*');
           } catch(e) {}
         };
-        // Send on load and on admin change
+        // Send on load and on auth change
         iframe.addEventListener('load', sendAuth);
         sendAuth();
         return () => iframe.removeEventListener('load', sendAuth);
-      }, [isAdmin]);
+      }, [isAdmin, authUser]);
 
       const hasHeader = !isFullscreen || hasAlts;
       const headerHeight = hasHeader ? 44 : 0;
@@ -1714,6 +1828,7 @@
       const [forkContributions, setForkContributions] = useState({}); // { repoFullName: boolean }
       const [loadingContributions, setLoadingContributions] = useState(false);
       const [isAdmin, setIsAdmin] = useState(false);
+      const [authUser, setAuthUser] = useState(null); // Firebase SSO user object
       const [showLoginModal, setShowLoginModal] = useState(false);
       const [hiddenRepos, setHiddenRepos] = useState(() => {
         try { return JSON.parse(localStorage.getItem('hiddenRepos') || '[]'); }
@@ -1723,6 +1838,50 @@
       const [showPreferences, setShowPreferences] = useState(false);
       const [showReleaseNotes, setShowReleaseNotes] = useState(false);
       const [showFeedback, setShowFeedback] = useState(false);
+
+      // Firebase Auth state listener — restore session on reload
+      useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+          if (user) {
+            setAuthUser({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+            });
+            const isEmailAdmin = CONFIG.ADMIN_EMAILS.length > 0
+              ? CONFIG.ADMIN_EMAILS.includes(user.email)
+              : true;
+            setIsAdmin(isEmailAdmin);
+          } else {
+            // Only clear SSO state; password admin is handled separately
+            if (authUser) {
+              setAuthUser(null);
+              setIsAdmin(false);
+            }
+          }
+        });
+        return () => unsubscribe();
+      }, []);
+
+      const handleLogin = (result) => {
+        if (result.method === 'sso') {
+          setAuthUser(result.user);
+          setIsAdmin(result.isAdmin);
+        } else {
+          // Password-based login
+          setIsAdmin(true);
+        }
+        setShowLoginModal(false);
+      };
+
+      const handleLogout = async () => {
+        if (authUser) {
+          try { await auth.signOut(); } catch {}
+        }
+        setAuthUser(null);
+        setIsAdmin(false);
+      };
       const [hiddenTabs, setHiddenTabs] = useState(() => {
         try { return JSON.parse(localStorage.getItem('hiddenTabs') || '[]'); }
         catch { return []; }
@@ -2029,18 +2188,23 @@
                           title="Send Feedback">
                     <Icon name="MessageSquare" size={16} />
                   </button>
-                  {isAdmin ? (
+                  {isAdmin || authUser ? (
                     <>
+                      {authUser && authUser.photoURL && (
+                        <img src={authUser.photoURL} alt="" referrerPolicy="no-referrer"
+                             className="w-8 h-8 rounded-full border border-amber-500/50"
+                             title={authUser.displayName || authUser.email} />
+                      )}
                       <button onClick={() => setShowPreferences(true)}
                               className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-800/60 text-zinc-400
                                        hover:text-amber-400 hover:bg-zinc-700 transition-colors"
                               title="Preferences">
                         <Icon name="Settings" size={16} />
                       </button>
-                      <button onClick={() => setIsAdmin(false)}
+                      <button onClick={handleLogout}
                               className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400
                                        hover:bg-amber-500/30 transition-colors border border-amber-500/30"
-                              title="Logout">
+                              title="Sign out">
                         <Icon name="LogOut" size={16} />
                       </button>
                     </>
@@ -2048,7 +2212,7 @@
                     <button onClick={() => setShowLoginModal(true)}
                             className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-800/60 text-zinc-500
                                      hover:text-zinc-300 hover:bg-zinc-700 transition-colors"
-                            title="Login">
+                            title="Sign in">
                       <Icon name="Lock" size={16} />
                     </button>
                   )}
@@ -2112,7 +2276,7 @@
           {activeView !== 'projects' && activeView !== 'forked-projects' && activeView !== 'starred' && (() => {
             const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
             if (app && app.requiresAdmin && !isAdmin) return null;
-            return app && app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} /> : null;
+            return app && app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} authUser={authUser} /> : null;
           })()}
 
           {/* Main */}
@@ -2121,7 +2285,7 @@
             {activeView !== 'projects' && activeView !== 'forked-projects' && activeView !== 'starred' && (() => {
               const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
               if (app && app.requiresAdmin && !isAdmin) return null;
-              return app && !app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} /> : null;
+              return app && !app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} authUser={authUser} /> : null;
             })()}
 
             {/* Projects View */}
@@ -2251,7 +2415,7 @@
 
           {/* Login Modal */}
           {showLoginModal && (
-            <LoginModal onLogin={() => { setIsAdmin(true); setShowLoginModal(false); }}
+            <LoginModal onLogin={handleLogin}
                         onClose={() => setShowLoginModal(false)} />
           )}
 
