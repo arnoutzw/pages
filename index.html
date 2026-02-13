@@ -2119,7 +2119,7 @@
 
                 {/* Navigation - GitHub dropdown + discipline dropdowns */}
                 <div className="hidden sm:flex items-center gap-1.5 flex-1 justify-center min-w-0">
-                  {(() => {
+                  {(isAdmin || authUser) && (() => {
                     const repoViews = [
                       { id: 'projects', icon: 'FolderGit2', name: 'Original Projects' },
                       ...(!hiddenTabs.includes('forked-projects') ? [{ id: 'forked-projects', icon: 'GitFork', name: 'Forked Projects' }] : []),
@@ -2224,7 +2224,8 @@
             {mobileMenuOpen && (
               <div className="sm:hidden border-t border-zinc-800 bg-zinc-900/95 backdrop-blur-sm max-h-[70vh] overflow-y-auto">
                 <div className="px-4 py-3 space-y-3">
-                  {/* GitHub section */}
+                  {/* GitHub section — only for logged-in users */}
+                  {(isAdmin || authUser) && (
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-600 mb-1.5 px-1">GitHub</div>
                     {[
@@ -2244,6 +2245,7 @@
                       </button>
                     ))}
                   </div>
+                  )}
 
                   {/* Discipline sections */}
                   {CONFIG.DISCIPLINES.map(disc => {
