@@ -189,6 +189,13 @@
       <div class="splash-tagline">→ Building things that work (mostly)</div>
     </div>
   </div>
+  <script>
+    // Dismiss splash screen after 2s — plain JS, no React dependency
+    setTimeout(function() {
+      var s = document.getElementById('splash');
+      if (s) { s.classList.add('fade-out'); setTimeout(function() { s.remove(); }, 700); }
+    }, 2000);
+  </script>
 
   <div id="root"></div>
 
@@ -1912,18 +1919,6 @@
         const handleResize = () => { if (window.innerWidth >= 640) setMobileMenuOpen(false); };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-      }, []);
-
-      // Dismiss splash screen after app mounts
-      useEffect(() => {
-        const timer = setTimeout(() => {
-          const splash = document.getElementById('splash');
-          if (splash) {
-            splash.classList.add('fade-out');
-            setTimeout(() => splash.remove(), 700);
-          }
-        }, 2000);
-        return () => clearTimeout(timer);
       }, []);
 
       // Firebase Auth state listener — restore session on reload
