@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="sph" cx="38%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#555"/>
+      <stop offset="30%" stop-color="#2a2a2a"/>
+      <stop offset="100%" stop-color="#000"/>
+    </radialGradient>
+    <radialGradient id="amb" cx="35%" cy="28%" r="30%">
+      <stop offset="0%" stop-color="#E8A317" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#E8A317" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wht" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glw" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E8A317" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#E8A317" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rng" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#E8A317" stop-opacity="0.05"/>
+      <stop offset="25%" stop-color="#E8A317" stop-opacity="0.85"/>
+      <stop offset="75%" stop-color="#C98B10" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#E8A317" stop-opacity="0.05"/>
+    </linearGradient>
+    <filter id="gl" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5"/>
+    </filter>
+  </defs>
+  <g transform="translate(32, 32)">
+    <circle cx="0" cy="0" r="30" fill="url(#glw)"/>
+    <ellipse cx="0" cy="1.5" rx="28" ry="8" fill="none" stroke="url(#rng)" stroke-width="1" opacity="0.4" stroke-dasharray="0 44 44 0"/>
+    <circle cx="0" cy="0" r="20" fill="url(#sph)"/>
+    <circle cx="0" cy="0" r="19.5" fill="none" stroke="#444" stroke-width="0.4" opacity="0.5"/>
+    <circle cx="0" cy="0" r="20" fill="url(#amb)"/>
+    <circle cx="-6" cy="-7" r="4" fill="url(#wht)"/>
+    <ellipse cx="0" cy="1.5" rx="28" ry="8" fill="none" stroke="url(#rng)" stroke-width="1.2" opacity="0.75" stroke-dasharray="44 44"/>
+    <ellipse cx="0" cy="1.5" rx="28" ry="8" fill="none" stroke="#E8A317" stroke-width="3" opacity="0.1" filter="url(#gl)" stroke-dasharray="44 44"/>
+  </g>
+</svg>
