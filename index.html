@@ -113,97 +113,9 @@
     /* Inline emoji */
     .inline-emoji { display: inline; height: 1.2em; width: 1.2em; vertical-align: text-bottom; margin: 0 0.05em; }
 
-    /* Splash screen */
-    #splash {
-      position: fixed; inset: 0; z-index: 9999;
-      background: #000;
-      display: flex; align-items: center; justify-content: center;
-      transition: opacity 0.6s ease, visibility 0.6s ease;
-    }
-    #splash.fade-out { opacity: 0; visibility: hidden; }
-    .splash-sphere {
-      position: relative; width: 140px; height: 140px;
-    }
-    .splash-sphere .core {
-      position: absolute; inset: 20px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 38% 30%, #555 0%, #2a2a2a 30%, #000 100%);
-    }
-    .splash-sphere .corona {
-      position: absolute; inset: 0;
-      border-radius: 50%;
-      box-shadow:
-        0 0 40px 10px rgba(232,163,23,0.3),
-        0 0 80px 30px rgba(232,163,23,0.15),
-        0 0 120px 50px rgba(232,163,23,0.08);
-      animation: corona-pulse 2s ease-in-out infinite;
-    }
-    .splash-sphere .ring {
-      position: absolute; top: 50%; left: 50%;
-      width: 180px; height: 40px;
-      margin-left: -90px; margin-top: -20px;
-      border: 2px solid transparent;
-      border-image: linear-gradient(90deg, transparent 0%, #E8A317 30%, #C98B10 70%, transparent 100%) 1;
-      border-top: none; border-bottom: none;
-      border-radius: 50%;
-      opacity: 0.6;
-      animation: ring-rotate 4s linear infinite;
-    }
-    @keyframes corona-pulse {
-      0%, 100% { box-shadow: 0 0 40px 10px rgba(232,163,23,0.3), 0 0 80px 30px rgba(232,163,23,0.15), 0 0 120px 50px rgba(232,163,23,0.08); }
-      50% { box-shadow: 0 0 50px 15px rgba(232,163,23,0.4), 0 0 100px 40px rgba(232,163,23,0.2), 0 0 140px 60px rgba(232,163,23,0.1); }
-    }
-    @keyframes ring-rotate {
-      from { transform: rotateX(70deg) rotateZ(0deg); }
-      to   { transform: rotateX(70deg) rotateZ(360deg); }
-    }
-    .splash-title {
-      margin-top: 32px;
-      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
-      font-size: 14px; font-weight: 600; letter-spacing: 2px;
-      color: #E8A317; opacity: 0; text-align: center;
-      animation: title-appear 0.8s ease 0.5s forwards;
-    }
-    .splash-tagline {
-      margin-top: 8px;
-      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
-      font-size: 10px; color: #E8A317; opacity: 0; text-align: center;
-      animation: title-appear 0.8s ease 0.9s forwards;
-    }
-    @keyframes title-appear {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 0.7; transform: translateY(0); }
-    }
   </style>
 </head>
 <body class="bg-zinc-950">
-  <!-- Splash screen (pure HTML/CSS — renders before React) -->
-  <div id="splash">
-    <div style="display:flex;flex-direction:column;align-items:center;">
-      <div class="splash-sphere">
-        <div class="corona"></div>
-        <div class="core"></div>
-        <div class="ring"></div>
-      </div>
-      <div class="splash-title">BLACK SPHERE INDUSTRIES</div>
-      <div class="splash-tagline">→ Building things that work (mostly)</div>
-    </div>
-  </div>
-  <script>
-    // Dismiss splash screen — skip immediately if returning from SSO redirect
-    (function() {
-      var s = document.getElementById('splash');
-      if (!s) return;
-      if (sessionStorage.getItem('ssoRedirectPending')) {
-        s.remove();
-        return;
-      }
-      setTimeout(function() {
-        s.classList.add('fade-out');
-        setTimeout(function() { s.remove(); }, 700);
-      }, 2000);
-    })();
-  </script>
 
   <div id="root"></div>
 
@@ -1416,13 +1328,9 @@
       const handleSSO = async (providerName) => {
         setError('');
         setLoading(true);
-        // Mark SSO in progress so splash screen is skipped if popup falls back to redirect
-        try { sessionStorage.setItem('ssoRedirectPending', '1'); } catch {}
         try {
           const provider = googleProvider;
           const result = await auth.signInWithPopup(provider);
-          // Popup succeeded — no redirect happened, clear the flag
-          try { sessionStorage.removeItem('ssoRedirectPending'); } catch {}
           const user = result.user;
           const isEmailAdmin = CONFIG.ADMIN_EMAILS.length > 0
             ? CONFIG.ADMIN_EMAILS.includes(user.email)
@@ -1961,7 +1869,7 @@
       // Handle SSO redirect result (for browsers that fall back from popup to redirect)
       useEffect(() => {
         auth.getRedirectResult().then((result) => {
-          try { sessionStorage.removeItem('ssoRedirectPending'); } catch {}
+
           if (result && result.user) {
             const user = result.user;
             setAuthUser({
@@ -1975,7 +1883,7 @@
               : true;
             setIsAdmin(isEmailAdmin);
           }
-        }).catch(() => { try { sessionStorage.removeItem('ssoRedirectPending'); } catch {} });
+        }).catch(() => {});
       }, []);
 
       const handleLogin = (result) => {
