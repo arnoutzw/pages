@@ -190,11 +190,20 @@
     </div>
   </div>
   <script>
-    // Dismiss splash screen after 2s — plain JS, no React dependency
-    setTimeout(function() {
+    // Dismiss splash screen — skip if already shown this session (e.g. SSO redirect return)
+    (function() {
       var s = document.getElementById('splash');
-      if (s) { s.classList.add('fade-out'); setTimeout(function() { s.remove(); }, 700); }
-    }, 2000);
+      if (!s) return;
+      if (sessionStorage.getItem('splashShown')) {
+        s.remove();
+        return;
+      }
+      sessionStorage.setItem('splashShown', '1');
+      setTimeout(function() {
+        s.classList.add('fade-out');
+        setTimeout(function() { s.remove(); }, 700);
+      }, 2000);
+    })();
   </script>
 
   <div id="root"></div>
@@ -1944,6 +1953,25 @@
           }
         });
         return () => unsubscribe();
+      }, []);
+
+      // Handle SSO redirect result (for browsers that fall back from popup to redirect)
+      useEffect(() => {
+        auth.getRedirectResult().then((result) => {
+          if (result && result.user) {
+            const user = result.user;
+            setAuthUser({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+            });
+            const isEmailAdmin = CONFIG.ADMIN_EMAILS.length > 0
+              ? CONFIG.ADMIN_EMAILS.includes(user.email)
+              : true;
+            setIsAdmin(isEmailAdmin);
+          }
+        }).catch(() => {});
       }, []);
 
       const handleLogin = (result) => {
