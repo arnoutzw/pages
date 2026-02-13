@@ -147,8 +147,8 @@
       // Admin email addresses — SSO users with these emails get admin access
       ADMIN_EMAILS: [],
 
-      // SSO providers to show on login modal ('google', 'github')
-      SSO_PROVIDERS: ['google', 'github'],
+      // SSO providers to show on login modal
+      SSO_PROVIDERS: ['google'],
 
       // Disciplines for grouping apps in navigation
       DISCIPLINES: [
@@ -470,9 +470,8 @@
     const db = firebaseApp.firestore();
     const auth = firebaseApp.auth();
 
-    // SSO providers
+    // SSO provider
     const googleProvider = new firebase.auth.GoogleAuthProvider();
-    const githubProvider = new firebase.auth.GithubAuthProvider();
     // ============================================
 
     // ============================================
@@ -483,7 +482,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
-      { hash: 'HEAD', date: '2026-02-13', changes: 'Add Firebase SSO authentication with Google and GitHub providers for all PWAs' },
+      { hash: 'HEAD', date: '2026-02-13', changes: 'Add Firebase SSO authentication with Google sign-in for all PWAs' },
       { hash: 'HEAD', date: '2026-02-09', changes: 'Add ERP and Invoice Maker to Planning discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Scrum Board under new Planning discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Woodcut Optimizer to Fabrication discipline' },
@@ -1334,7 +1333,7 @@
         setError('');
         setLoading(true);
         try {
-          const provider = providerName === 'google' ? googleProvider : githubProvider;
+          const provider = googleProvider;
           const result = await auth.signInWithPopup(provider);
           const user = result.user;
           const isEmailAdmin = CONFIG.ADMIN_EMAILS.length > 0
@@ -1372,7 +1371,6 @@
 
       const providerMeta = {
         google: { name: 'Google', icon: 'Chrome', color: 'bg-blue-600 hover:bg-blue-500' },
-        github: { name: 'GitHub', icon: 'Github', color: 'bg-zinc-700 hover:bg-zinc-600' },
       };
 
       return (

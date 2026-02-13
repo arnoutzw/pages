@@ -6,7 +6,7 @@ This document describes how embedded PWA apps (iframes) can receive and use Fire
 
 ## How It Works
 
-The parent portfolio (`index.html`) authenticates users via Firebase Auth (Google / GitHub SSO). When a user is signed in, the parent broadcasts auth credentials to every embedded iframe via `postMessage`. Child PWAs listen for this message to receive the user's identity and a Firebase ID token.
+The parent portfolio (`index.html`) authenticates users via Firebase Auth (Google SSO). When a user is signed in, the parent broadcasts auth credentials to every embedded iframe via `postMessage`. Child PWAs listen for this message to receive the user's identity and a Firebase ID token.
 
 ---
 

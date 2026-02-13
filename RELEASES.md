@@ -6,10 +6,10 @@ All notable changes to Maker Portfolio, organized by date and git commit hash.
 
 ## 2026-02-13
 
-### `HEAD` - Add Firebase SSO authentication with Google and GitHub providers for all PWAs
+### `HEAD` - Add Firebase SSO authentication with Google sign-in for all PWAs
 
-- Integrated Firebase Auth SDK for SSO login (Google + GitHub)
-- Login modal now shows SSO provider buttons with password fallback
+- Integrated Firebase Auth SDK for Google SSO login
+- Login modal now shows Google sign-in button with password fallback
 - Auth state persists across page reloads via Firebase session
 - User avatar and info displayed in header when signed in via SSO
 - Embedded PWAs receive SSO credentials (user info + ID token) via postMessage
