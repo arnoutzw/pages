@@ -1840,6 +1840,14 @@
       const [showPreferences, setShowPreferences] = useState(false);
       const [showReleaseNotes, setShowReleaseNotes] = useState(false);
       const [showFeedback, setShowFeedback] = useState(false);
+      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+      // Close mobile menu on resize past sm breakpoint
+      useEffect(() => {
+        const handleResize = () => { if (window.innerWidth >= 640) setMobileMenuOpen(false); };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+      }, []);
 
       // Firebase Auth state listener — restore session on reload
       useEffect(() => {
@@ -2119,8 +2127,17 @@
                   </div>
                 </div>
 
+                {/* Mobile hamburger */}
+                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="sm:hidden flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-800/60 text-zinc-400
+                                 hover:bg-zinc-700 hover:text-zinc-200 transition-colors"
+                        title="Menu">
+                  <Icon name={mobileMenuOpen ? 'X' : 'Menu'} size={18} />
+                </button>
+                <div className="flex-1 sm:hidden"></div>
+
                 {/* Navigation - GitHub dropdown + discipline dropdowns */}
-                <div className="flex items-center gap-1.5 flex-1 justify-center min-w-0">
+                <div className="hidden sm:flex items-center gap-1.5 flex-1 justify-center min-w-0">
                   {(() => {
                     const repoViews = [
                       { id: 'projects', icon: 'FolderGit2', name: 'Original Projects' },
@@ -2221,6 +2238,60 @@
                 </div>
               </div>
             </div>
+
+            {/* Mobile navigation menu */}
+            {mobileMenuOpen && (
+              <div className="sm:hidden border-t border-zinc-800 bg-zinc-900/95 backdrop-blur-sm max-h-[70vh] overflow-y-auto">
+                <div className="px-4 py-3 space-y-3">
+                  {/* GitHub section */}
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-600 mb-1.5 px-1">GitHub</div>
+                    {[
+                      { id: 'projects', icon: 'FolderGit2', name: 'Original Projects' },
+                      ...(!hiddenTabs.includes('forked-projects') ? [{ id: 'forked-projects', icon: 'GitFork', name: 'Forked Projects' }] : []),
+                      ...(!hiddenTabs.includes('starred') ? [{ id: 'starred', icon: 'Star', name: 'Starred' }] : []),
+                    ].map(v => (
+                      <button key={v.id}
+                              onClick={() => { setActiveView(v.id); setMobileMenuOpen(false); }}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors
+                                        ${activeView === v.id
+                                          ? 'bg-amber-500/15 text-amber-400'
+                                          : 'text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100'}`}>
+                        <Icon name={v.icon} size={16}
+                              className={activeView === v.id ? 'text-amber-500' : 'text-zinc-500'} />
+                        <span className="font-mono text-xs">{v.name}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Discipline sections */}
+                  {CONFIG.DISCIPLINES.map(disc => {
+                    const discApps = visibleApps.filter(app => app.discipline === disc.id);
+                    if (discApps.length === 0) return null;
+                    return (
+                      <div key={disc.id}>
+                        <div className="font-mono text-[10px] uppercase tracking-widest text-zinc-600 mb-1.5 px-1 flex items-center gap-1.5">
+                          <Icon name={disc.icon} size={12} />
+                          {disc.name}
+                        </div>
+                        {discApps.map(app => (
+                          <button key={app.id}
+                                  onClick={() => { setActiveView(app.id); setMobileMenuOpen(false); }}
+                                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors
+                                            ${activeView === app.id
+                                              ? 'bg-amber-500/15 text-amber-400'
+                                              : 'text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100'}`}>
+                            <Icon name={app.icon} size={16}
+                                  className={activeView === app.id ? 'text-amber-500' : 'text-zinc-500'} />
+                            <span className="font-mono text-xs">{app.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </header>
 
           {/* Filters - show in projects, forked-projects, and starred views */}
