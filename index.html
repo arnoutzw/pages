@@ -190,15 +190,14 @@
     </div>
   </div>
   <script>
-    // Dismiss splash screen — skip if already shown this session (e.g. SSO redirect return)
+    // Dismiss splash screen — skip immediately if returning from SSO redirect
     (function() {
       var s = document.getElementById('splash');
       if (!s) return;
-      if (sessionStorage.getItem('splashShown')) {
+      if (sessionStorage.getItem('ssoRedirectPending')) {
         s.remove();
         return;
       }
-      sessionStorage.setItem('splashShown', '1');
       setTimeout(function() {
         s.classList.add('fade-out');
         setTimeout(function() { s.remove(); }, 700);
@@ -1417,9 +1416,13 @@
       const handleSSO = async (providerName) => {
         setError('');
         setLoading(true);
+        // Mark SSO in progress so splash screen is skipped if popup falls back to redirect
+        try { sessionStorage.setItem('ssoRedirectPending', '1'); } catch {}
         try {
           const provider = googleProvider;
           const result = await auth.signInWithPopup(provider);
+          // Popup succeeded — no redirect happened, clear the flag
+          try { sessionStorage.removeItem('ssoRedirectPending'); } catch {}
           const user = result.user;
           const isEmailAdmin = CONFIG.ADMIN_EMAILS.length > 0
             ? CONFIG.ADMIN_EMAILS.includes(user.email)
@@ -1958,6 +1961,7 @@
       // Handle SSO redirect result (for browsers that fall back from popup to redirect)
       useEffect(() => {
         auth.getRedirectResult().then((result) => {
+          try { sessionStorage.removeItem('ssoRedirectPending'); } catch {}
           if (result && result.user) {
             const user = result.user;
             setAuthUser({
@@ -1971,7 +1975,7 @@
               : true;
             setIsAdmin(isEmailAdmin);
           }
-        }).catch(() => {});
+        }).catch(() => { try { sessionStorage.removeItem('ssoRedirectPending'); } catch {} });
       }, []);
 
       const handleLogin = (result) => {
