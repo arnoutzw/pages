@@ -3,32 +3,35 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    // Temporary open rule — expires 2026-03-10
     match /{document=**} {
       allow read, write: if request.time < timestamp.date(2026, 3, 10);
     }
 
-    // PDF cache collection - persists after the general rule expires
+    // PDF cache collection - public read/write (anonymous + authenticated)
     match /pdf_cache/{document} {
       allow read, write: if true;
     }
 
-    // GitHub API cache collection - persists after the general rule expires
+    // GitHub API cache collection - public read/write (anonymous + authenticated)
     match /github_cache/{document} {
       allow read, write: if true;
     }
 
-    // Feedback collection - public can create, only admin can read
+    // Feedback collection - public can create, authenticated users can read
     match /feedback/{document} {
       allow create: if true;
+      allow read: if request.auth != null;
+    }
+
+    // Per-user settings collection — only the owning user can read/write
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Per-user app data — scoped by user ID
+    match /users/{userId}/app_data/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
