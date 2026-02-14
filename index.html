@@ -6,6 +6,30 @@
   <title>Black Sphere Industries | GitHub Projects</title>
   <meta name="description" content="A portfolio of maker and tinkerer projects, powered by GitHub">
 
+  <!-- Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline'
+      https://cdn.tailwindcss.com
+      https://unpkg.com
+      https://www.gstatic.com
+      https://cdn.jsdelivr.net
+      https://pagead2.googlesyndication.com
+      https://apis.google.com;
+    style-src 'self' 'unsafe-inline'
+      https://fonts.googleapis.com
+      https://cdn.jsdelivr.net;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data: https:;
+    frame-src https://arnoutzw.github.io https://www.falstad.com https://phydemo.app;
+    connect-src 'self'
+      https://firestore.googleapis.com
+      https://www.googleapis.com
+      https://securetoken.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://api.github.com;
+  ">
+
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="zwartbol-icon.svg">
 
@@ -18,7 +42,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS (JIT compiler — cannot use SRI; consider self-hosting for production) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwindcss.config = {
@@ -33,23 +57,23 @@
     }
   </script>
 
-  <!-- React -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- React (pinned versions — run ./generate-sri.sh to populate integrity hashes) -->
+  <script crossorigin="anonymous" src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script crossorigin="anonymous" src="https://unpkg.com/@babel/standalone@7.26.9/babel.min.js"></script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Lucide Icons (pinned version) -->
+  <script crossorigin="anonymous" src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase (gstatic.com lacks CORS headers for SRI — consider jsdelivr alternative if SRI needed) -->
+  <script crossorigin="anonymous" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script crossorigin="anonymous" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script crossorigin="anonymous" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-  <!-- Markdown Parser & Syntax Highlighting -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <!-- Markdown Parser & Syntax Highlighting (pinned versions) -->
+  <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+  <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  <link rel="stylesheet" crossorigin="anonymous" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
 
   <style>
     * { font-family: 'Inter', sans-serif; }
@@ -235,8 +259,9 @@
       // Hide forked repos
       HIDE_FORKS: false,
 
-      // Admin password for login (enables hide/unhide repos)
-      ADMIN_PASSWORD: 'admin',
+      // Admin password SHA-256 hash (generate with: echo -n 'yourpassword' | sha256sum)
+      // Default hash below is for 'admin' — change this to your own password hash
+      ADMIN_PASSWORD_HASH: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
 
       // Admin email addresses — SSO users with these emails get admin access
       ADMIN_EMAILS: [],
@@ -541,6 +566,11 @@
 
     // ============================================
     // FIREBASE - GitHub cache database
+    // SECURITY: This API key is a client identifier, not a secret (per Firebase docs).
+    // Restrict it in GCP Console → APIs & Services → Credentials:
+    //   - HTTP referrer: arnoutzw.github.io/*, localhost:*
+    //   - API restrictions: Firebase Auth, Firestore, Identity Toolkit only
+    // Also enable Firebase App Check for domain attestation.
     // ============================================
     const firebaseApp = firebase.initializeApp({
       apiKey: "AIzaSyAqRWVgti-CuXzr5AkhDKmPlu7iA2MQpUg",
@@ -1403,9 +1433,11 @@
       const [loading, setLoading] = useState(false);
       const [showPassword, setShowPassword] = useState(false);
 
-      const handlePasswordSubmit = (e) => {
+      const handlePasswordSubmit = async (e) => {
         e.preventDefault();
-        if (password === CONFIG.ADMIN_PASSWORD) {
+        const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+        const hash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        if (hash === CONFIG.ADMIN_PASSWORD_HASH) {
           onLogin({ method: 'password' });
         } else {
           setError('Invalid password');
@@ -1815,10 +1847,10 @@
             if (currentUser) {
               try { idToken = await currentUser.getIdToken(); } catch {}
             }
+            const iframeOrigin = new URL(currentUrl).origin;
             iframe.contentWindow.postMessage({
               type: 'admin-auth',
               isAdmin: !!isAdmin,
-              key: isAdmin ? CONFIG.ADMIN_PASSWORD : null,
               // SSO fields for child PWAs
               sso: authUser ? {
                 uid: authUser.uid,
@@ -1827,7 +1859,7 @@
                 photoURL: authUser.photoURL,
                 idToken,
               } : null,
-            }, '*');
+            }, iframeOrigin);
           } catch(e) {}
         };
         // Send on load and on auth change
