@@ -24,10 +24,9 @@ Tools are organized into **six engineering disciplines**, each accessible via dr
 
 ## Authentication
 
-Two sign-in methods:
+sign-in method:
 
 - **Google SSO** via Firebase Auth — grants admin access based on email whitelist
-- **Password** — simple admin password for quick access
 
 SSO credentials are forwarded to embedded iframes via `postMessage` so child apps can share the auth context. See [`SSO_INTEGRATION.md`](SSO_INTEGRATION.md) for the iframe protocol.
 
