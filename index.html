@@ -1954,7 +1954,7 @@
     };
 
     // Landing page for unauthenticated visitors
-    const LandingPage = ({ onSignIn }) => {
+    const LandingPage = ({ onSignIn, onSelectApp }) => {
       // Group apps by discipline for the showcase
       const disciplineApps = useMemo(() => {
         const grouped = {};
@@ -2010,9 +2010,10 @@
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {disc.apps.map(app => (
-                    <div key={app.id}
+                    <button key={app.id}
+                         onClick={() => onSelectApp(app.id)}
                          className="group flex items-start gap-3 p-3 rounded-lg bg-zinc-900/50 border border-zinc-800/60
-                                  hover:border-zinc-700 hover:bg-zinc-800/40 transition-colors">
+                                  hover:border-amber-500/30 hover:bg-zinc-800/40 transition-colors text-left cursor-pointer">
                       <div className="shrink-0 mt-0.5 w-8 h-8 rounded-md bg-zinc-800 flex items-center justify-center
                                     group-hover:bg-amber-500/10 transition-colors">
                         <Icon name={app.icon} size={14} className="text-zinc-500 group-hover:text-amber-500 transition-colors" />
@@ -2021,7 +2022,7 @@
                         <div className="font-mono text-sm text-zinc-200 group-hover:text-zinc-100 transition-colors">{app.name}</div>
                         <div className="font-mono text-xs text-zinc-600 leading-relaxed mt-0.5">{app.description}</div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -2548,7 +2549,7 @@
 
           {/* Landing page for unauthenticated visitors */}
           {!isLoggedIn && isProjectView && (
-            <LandingPage onSignIn={() => setShowLoginModal(true)} />
+            <LandingPage onSignIn={() => setShowLoginModal(true)} onSelectApp={setActiveView} />
           )}
 
           {/* Main */}
