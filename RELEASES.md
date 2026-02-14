@@ -6,6 +6,11 @@ All notable changes to Maker Portfolio, organized by date and git commit hash.
 
 ## 2026-02-14
 
+### `HEAD` - Add Neural Terminal (AI Chat Hub) to Software discipline
+
+- Added Neural Terminal as an embedded app in the Software discipline
+- AI Chat Hub supporting Claude & Gemini conversations
+
 ### `HEAD` - Add VS Code (vscode.dev) to Software discipline
 
 - Added vscode.dev as a cloud-based VS Code editor in the Software discipline

@@ -594,6 +594,16 @@
           fullscreen: true,
           discipline: 'software',
           openInNewTab: true
+        },
+        {
+          id: 'neural-terminal',
+          name: 'Neural Terminal',
+          icon: 'BrainCircuit',
+          url: 'https://arnoutzw.github.io/home/neural-terminal/',
+          description: 'AI Chat Hub — Claude & Gemini',
+          isLocal: true,
+          fullscreen: true,
+          discipline: 'software'
         }
       ],
     };
@@ -630,6 +640,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-14', changes: 'Add Neural Terminal (AI Chat Hub) to Software discipline' },
       { hash: 'HEAD', date: '2026-02-14', changes: 'Add VS Code (vscode.dev) to Software discipline' },
       { hash: 'HEAD', date: '2026-02-13', changes: 'Add Firebase SSO authentication with Google sign-in for all PWAs' },
       { hash: 'HEAD', date: '2026-02-09', changes: 'Add ERP and Invoice Maker to Planning discipline' },
