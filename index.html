@@ -259,10 +259,6 @@
       // Hide forked repos
       HIDE_FORKS: false,
 
-      // Admin password SHA-256 hash (generate with: echo -n 'yourpassword' | sha256sum)
-      // Default hash below is for 'admin' — change this to your own password hash
-      ADMIN_PASSWORD_HASH: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
-
       // Admin email addresses — SSO users with these emails get admin access
       ADMIN_EMAILS: [],
 
@@ -1426,24 +1422,10 @@
       );
     };
 
-    // Login Modal — SSO with Firebase Auth + password fallback
+    // Login Modal — SSO with Firebase Auth
     const LoginModal = ({ onLogin, onClose }) => {
-      const [password, setPassword] = useState('');
       const [error, setError] = useState('');
       const [loading, setLoading] = useState(false);
-      const [showPassword, setShowPassword] = useState(false);
-
-      const handlePasswordSubmit = async (e) => {
-        e.preventDefault();
-        const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
-        const hash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
-        if (hash === CONFIG.ADMIN_PASSWORD_HASH) {
-          onLogin({ method: 'password' });
-        } else {
-          setError('Invalid password');
-          setPassword('');
-        }
-      };
 
       const handleSSO = async (providerName) => {
         setError('');
@@ -1538,38 +1520,6 @@
                     );
                   })}
                 </div>
-              )}
-
-              {/* Divider */}
-              {CONFIG.SSO_PROVIDERS.length > 0 && (
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="flex-1 border-t border-zinc-700"></div>
-                  <span className="font-mono text-xs text-zinc-600">or</span>
-                  <div className="flex-1 border-t border-zinc-700"></div>
-                </div>
-              )}
-
-              {/* Password fallback */}
-              {!showPassword && CONFIG.SSO_PROVIDERS.length > 0 ? (
-                <button onClick={() => setShowPassword(true)}
-                        className="w-full text-center font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors py-2">
-                  Use admin password instead
-                </button>
-              ) : (
-                <form onSubmit={handlePasswordSubmit}>
-                  <label className="block font-mono text-xs text-zinc-500 mb-2">
-                    <span className="text-green-400">$</span> enter password
-                  </label>
-                  <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                         autoFocus placeholder="••••••••"
-                         className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm
-                                  placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none mb-3" />
-                  <button type="submit"
-                          className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-900 font-mono font-bold text-sm
-                                   py-2.5 rounded-lg transition-colors">
-                    Authenticate
-                  </button>
-                </form>
               )}
 
               {/* Error display */}
@@ -2157,13 +2107,8 @@
       }, []);
 
       const handleLogin = (result) => {
-        if (result.method === 'sso') {
-          setAuthUser(result.user);
-          setIsAdmin(result.isAdmin);
-        } else {
-          // Password-based login
-          setIsAdmin(true);
-        }
+        setAuthUser(result.user);
+        setIsAdmin(result.isAdmin);
         setShowLoginModal(false);
       };
 
