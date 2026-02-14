@@ -15,7 +15,8 @@
       https://www.gstatic.com
       https://cdn.jsdelivr.net
       https://pagead2.googlesyndication.com
-      https://apis.google.com;
+      https://apis.google.com
+      https://www.googletagmanager.com;
     style-src 'self' 'unsafe-inline'
       https://fonts.googleapis.com
       https://cdn.jsdelivr.net;
@@ -28,11 +29,23 @@
       https://www.googleapis.com
       https://securetoken.googleapis.com
       https://identitytoolkit.googleapis.com
-      https://api.github.com;
+      https://api.github.com
+      https://www.google-analytics.com
+      https://*.google-analytics.com
+      https://*.analytics.google.com;
   ">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="zwartbol-icon.svg">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXDKDLXP7L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VXDKDLXP7L');
+  </script>
 
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4182327423467372"
@@ -556,7 +569,8 @@
           description: 'Browser Python notebook with NumPy, SciPy and Matplotlib',
           isLocal: false,
           fullscreen: true,
-          discipline: 'software'
+          discipline: 'software',
+          openInNewTab: true
         }
       ],
     };
@@ -1404,7 +1418,7 @@
                     </div>
                     {discApps.map(app => (
                       <button key={app.id}
-                              onClick={() => { onSelectApp(app.id); setOpenId(null); }}
+                              onClick={() => { app.openInNewTab ? window.open(app.url, '_blank', 'noopener') : onSelectApp(app.id); setOpenId(null); }}
                               className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors
                                         ${activeView === app.id
                                           ? 'bg-amber-500/15 text-amber-400'
@@ -1412,6 +1426,7 @@
                         <Icon name={app.icon} size={16}
                               className={activeView === app.id ? 'text-amber-500' : 'text-zinc-500'} />
                         <span className="font-mono text-xs">{app.name}</span>
+                        {app.openInNewTab && <Icon name="ExternalLink" size={12} className="ml-auto text-zinc-600" />}
                       </button>
                     ))}
                   </div>
@@ -1996,15 +2011,18 @@
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {disc.apps.map(app => (
                     <button key={app.id}
-                         onClick={() => onSelectApp(app.id)}
+                         onClick={() => app.openInNewTab ? window.open(app.url, '_blank', 'noopener') : onSelectApp(app.id)}
                          className="group flex items-start gap-3 p-3 rounded-lg bg-zinc-900/50 border border-zinc-800/60
                                   hover:border-amber-500/30 hover:bg-zinc-800/40 transition-colors text-left cursor-pointer">
                       <div className="shrink-0 mt-0.5 w-8 h-8 rounded-md bg-zinc-800 flex items-center justify-center
                                     group-hover:bg-amber-500/10 transition-colors">
                         <Icon name={app.icon} size={14} className="text-zinc-500 group-hover:text-amber-500 transition-colors" />
                       </div>
-                      <div className="min-w-0">
-                        <div className="font-mono text-sm text-zinc-200 group-hover:text-zinc-100 transition-colors">{app.name}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-mono text-sm text-zinc-200 group-hover:text-zinc-100 transition-colors flex items-center gap-1.5">
+                          {app.name}
+                          {app.openInNewTab && <Icon name="ExternalLink" size={11} className="text-zinc-600" />}
+                        </div>
                         <div className="font-mono text-xs text-zinc-600 leading-relaxed mt-0.5">{app.description}</div>
                       </div>
                     </button>
@@ -2453,7 +2471,7 @@
                         </div>
                         {discApps.map(app => (
                           <button key={app.id}
-                                  onClick={() => { setActiveView(app.id); setMobileMenuOpen(false); }}
+                                  onClick={() => { app.openInNewTab ? window.open(app.url, '_blank', 'noopener') : setActiveView(app.id); setMobileMenuOpen(false); }}
                                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors
                                             ${activeView === app.id
                                               ? 'bg-amber-500/15 text-amber-400'
@@ -2461,6 +2479,7 @@
                             <Icon name={app.icon} size={16}
                                   className={activeView === app.id ? 'text-amber-500' : 'text-zinc-500'} />
                             <span className="font-mono text-xs">{app.name}</span>
+                            {app.openInNewTab && <Icon name="ExternalLink" size={12} className="ml-auto text-zinc-600" />}
                           </button>
                         ))}
                       </div>
