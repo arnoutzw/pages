@@ -1937,7 +1937,7 @@
     };
 
     // Landing page for unauthenticated visitors
-    const LandingPage = ({ onSignIn, onSelectApp }) => {
+    const LandingPage = ({ onSignIn, onSelectApp, isLoggedIn }) => {
       // Group apps by discipline for the showcase
       const disciplineApps = useMemo(() => {
         const grouped = {};
@@ -1973,12 +1973,14 @@
                 <Icon name="Github" size={16} />
                 View on GitHub
               </a>
-              <button onClick={onSignIn}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm
-                               bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 transition-colors">
-                <Icon name="LogIn" size={16} />
-                Sign in
-              </button>
+              {!isLoggedIn && (
+                <button onClick={onSignIn}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm
+                                 bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 transition-colors">
+                  <Icon name="LogIn" size={16} />
+                  Sign in
+                </button>
+              )}
             </div>
           </div>
 
@@ -2012,16 +2014,18 @@
             ))}
           </div>
 
-          {/* Bottom CTA */}
-          <div className="mt-20 text-center">
-            <p className="font-mono text-xs text-zinc-600 mb-3">Sign in for full access to projects and tools</p>
-            <button onClick={onSignIn}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs
-                             text-zinc-500 hover:text-amber-400 hover:bg-zinc-800/60 border border-zinc-800 transition-colors">
-              <Icon name="Lock" size={14} />
-              Sign in
-            </button>
-          </div>
+          {/* Bottom CTA — only for unauthenticated visitors */}
+          {!isLoggedIn && (
+            <div className="mt-20 text-center">
+              <p className="font-mono text-xs text-zinc-600 mb-3">Sign in for full access to projects and tools</p>
+              <button onClick={onSignIn}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs
+                               text-zinc-500 hover:text-amber-400 hover:bg-zinc-800/60 border border-zinc-800 transition-colors">
+                <Icon name="Lock" size={14} />
+                Sign in
+              </button>
+            </div>
+          )}
         </main>
       );
     };
@@ -2525,9 +2529,9 @@
             return app && app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} authUser={authUser} /> : null;
           })()}
 
-          {/* Landing page for unauthenticated visitors */}
-          {!isLoggedIn && isProjectView && (
-            <LandingPage onSignIn={() => setShowLoginModal(true)} onSelectApp={setActiveView} />
+          {/* Landing page with company logo, description and app showcase */}
+          {isProjectView && (
+            <LandingPage onSignIn={() => setShowLoginModal(true)} onSelectApp={setActiveView} isLoggedIn={isLoggedIn} />
           )}
 
           {/* Main */}
