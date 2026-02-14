@@ -121,7 +121,7 @@
       <!-- Service cards -->
       <div class="grid grid-cols-2 gap-4 mt-6">
         <!-- Claude -->
-        <a href="https://claude.ai" class="service-card group bg-zinc-900 border border-zinc-700 rounded-lg p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/80 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 no-underline block">
+        <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" class="service-card group bg-zinc-900 border border-zinc-700 rounded-lg p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/80 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 no-underline block">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
               <svg class="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -138,7 +138,7 @@
         </a>
 
         <!-- Gemini -->
-        <a href="https://gemini.google.com" class="service-card group bg-zinc-900 border border-zinc-700 rounded-lg p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/80 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 no-underline block">
+        <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" class="service-card group bg-zinc-900 border border-zinc-700 rounded-lg p-5 text-left hover:border-amber-500/50 hover:bg-zinc-800/80 hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300 no-underline block">
           <div class="flex items-center gap-3 mb-3">
             <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
               <svg class="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -163,7 +163,7 @@
           </div>
           <div>
             <p class="text-xs text-zinc-400 leading-relaxed">
-              <span class="text-zinc-300 font-medium">How it works:</span> Clicking a service navigates to it directly in this window. You log in normally with your existing account. Use your browser's back button to return here.
+              <span class="text-zinc-300 font-medium">How it works:</span> Clicking a service opens it in a new tab. You log in normally with your existing account.
             </p>
             <p class="text-xs text-zinc-500 mt-2 font-mono">
               Install as PWA for a native app experience →
@@ -217,11 +217,11 @@
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === '1') {
         e.preventDefault();
-        window.location.href = 'https://claude.ai';
+        window.open('https://claude.ai', '_blank', 'noopener,noreferrer');
       }
       if ((e.ctrlKey || e.metaKey) && e.key === '2') {
         e.preventDefault();
-        window.location.href = 'https://gemini.google.com';
+        window.open('https://gemini.google.com', '_blank', 'noopener,noreferrer');
       }
     });
 
