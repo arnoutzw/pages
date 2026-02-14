@@ -1953,6 +1953,95 @@
       );
     };
 
+    // Landing page for unauthenticated visitors
+    const LandingPage = ({ onSignIn }) => {
+      // Group apps by discipline for the showcase
+      const disciplineApps = useMemo(() => {
+        const grouped = {};
+        CONFIG.INTEGRATED_APPS.forEach(app => {
+          const d = app.discipline || 'other';
+          if (!grouped[d]) grouped[d] = [];
+          grouped[d].push(app);
+        });
+        return CONFIG.DISCIPLINES.filter(d => grouped[d.id]?.length > 0).map(d => ({
+          ...d,
+          apps: grouped[d.id],
+        }));
+      }, []);
+
+      return (
+        <main className="max-w-5xl mx-auto px-4 py-16 sm:py-24">
+          {/* Hero */}
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center justify-center w-20 h-20 mb-6 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/20">
+              <img src="zwartbol-icon.svg" alt="" className="w-12 h-12" />
+            </div>
+            <h1 className="font-mono text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+              <span className="text-zinc-100">{CONFIG.SITE_TITLE}</span>
+            </h1>
+            <p className="font-mono text-sm sm:text-base text-zinc-500 max-w-xl mx-auto leading-relaxed">
+              Multidisciplinary engineering studio building open-source tools for
+              electrical, mechanical, physics, and fabrication workflows.
+            </p>
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <a href={`https://github.com/${CONFIG.GITHUB_USERNAME}`} target="_blank" rel="noopener noreferrer"
+                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm
+                          bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-zinc-100 border border-zinc-700 transition-colors">
+                <Icon name="Github" size={16} />
+                View on GitHub
+              </a>
+              <button onClick={onSignIn}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm
+                               bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 transition-colors">
+                <Icon name="LogIn" size={16} />
+                Sign in
+              </button>
+            </div>
+          </div>
+
+          {/* Discipline showcase */}
+          <div className="space-y-10">
+            {disciplineApps.map(disc => (
+              <div key={disc.id}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon name={disc.icon} size={16} className="text-amber-500/70" />
+                  <h2 className="font-mono text-sm font-semibold tracking-wide text-zinc-400 uppercase">{disc.name}</h2>
+                  <div className="flex-1 border-t border-zinc-800 ml-2"></div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {disc.apps.map(app => (
+                    <div key={app.id}
+                         className="group flex items-start gap-3 p-3 rounded-lg bg-zinc-900/50 border border-zinc-800/60
+                                  hover:border-zinc-700 hover:bg-zinc-800/40 transition-colors">
+                      <div className="shrink-0 mt-0.5 w-8 h-8 rounded-md bg-zinc-800 flex items-center justify-center
+                                    group-hover:bg-amber-500/10 transition-colors">
+                        <Icon name={app.icon} size={14} className="text-zinc-500 group-hover:text-amber-500 transition-colors" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-mono text-sm text-zinc-200 group-hover:text-zinc-100 transition-colors">{app.name}</div>
+                        <div className="font-mono text-xs text-zinc-600 leading-relaxed mt-0.5">{app.description}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="mt-20 text-center">
+            <p className="font-mono text-xs text-zinc-600 mb-3">Sign in for full access to projects and tools</p>
+            <button onClick={onSignIn}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xs
+                             text-zinc-500 hover:text-amber-400 hover:bg-zinc-800/60 border border-zinc-800 transition-colors">
+              <Icon name="Lock" size={14} />
+              Sign in
+            </button>
+          </div>
+        </main>
+      );
+    };
+
     // Main App
     function App() {
       const [repos, setRepos] = useState([]);
@@ -2262,6 +2351,9 @@
         });
       }, [repos, starredRepos, searchTerm, selectedLanguage, activeView, sortBy, isAdmin, hiddenRepos, forkFilter, forkContributions]);
 
+      const isLoggedIn = isAdmin || !!authUser;
+      const isProjectView = activeView === 'projects' || activeView === 'forked-projects' || activeView === 'starred';
+
       return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100">
           {/* Grid background */}
@@ -2396,8 +2488,8 @@
             )}
           </header>
 
-          {/* Filters - show in projects, forked-projects, and starred views */}
-          {(activeView === 'projects' || activeView === 'forked-projects' || activeView === 'starred') && !loading && !error && !loadingStarred && (
+          {/* Filters - show in projects, forked-projects, and starred views (logged in only) */}
+          {isLoggedIn && isProjectView && !loading && !error && !loadingStarred && (
             <div className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-[61px] z-30">
               <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -2448,23 +2540,28 @@
           )}
 
           {/* Fullscreen App View - rendered outside main container */}
-          {activeView !== 'projects' && activeView !== 'forked-projects' && activeView !== 'starred' && (() => {
+          {!isProjectView && (() => {
             const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
             if (app && app.requiresAdmin && !isAdmin) return null;
             return app && app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} authUser={authUser} /> : null;
           })()}
 
+          {/* Landing page for unauthenticated visitors */}
+          {!isLoggedIn && isProjectView && (
+            <LandingPage onSignIn={() => setShowLoginModal(true)} />
+          )}
+
           {/* Main */}
           <main className="max-w-7xl mx-auto px-4 py-6 relative">
             {/* Embedded App View (non-fullscreen) */}
-            {activeView !== 'projects' && activeView !== 'forked-projects' && activeView !== 'starred' && (() => {
+            {!isProjectView && (() => {
               const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
               if (app && app.requiresAdmin && !isAdmin) return null;
               return app && !app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} authUser={authUser} /> : null;
             })()}
 
-            {/* Projects View */}
-            {(activeView === 'projects' || activeView === 'forked-projects' || activeView === 'starred') && (
+            {/* Projects View (logged-in only) */}
+            {isLoggedIn && isProjectView && (
               <>
                 {(activeView === 'starred' ? loadingStarred : loading) ? (
                   <div className="flex flex-col items-center justify-center py-20">
